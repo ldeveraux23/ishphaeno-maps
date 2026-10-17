@@ -1,0 +1,499 @@
+<title>Ishphaeno Soil Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one wide schematic map, a live readout under it, then the key in groups (ground, edges, water, shores, sky and peaks). */
+:root {
+  --bg: #f3f2f6;
+  --panel: #ffffff;
+  --ink: #1d1b26;
+  --muted: #5d5a6b;
+  --line: #d9d6e2;
+  --accent: #a8432b;
+  --land: #d8d4cd;
+  --f-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15131b; --panel: #1e1b27; --ink: #ece9f2; --muted: #a29eb4;
+    --line: #34303f; --accent: #e0805f; --land: #2c2935; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15131b; --panel: #1e1b27; --ink: #ece9f2; --muted: #a29eb4;
+  --line: #34303f; --accent: #e0805f; --land: #2c2935; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); max-width: 64ch; margin: 0; }
+.status { font-family: var(--f-mono); font-size: 12px; letter-spacing: .04em; color: var(--accent); text-transform: uppercase; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; }
+svg { display: block; width: 100%; height: auto; max-width: 100%; }
+figcaption { color: var(--muted); font-size: 13px; padding: 10px 4px 2px; max-width: 80ch; }
+.region { cursor: pointer; stroke: rgba(255,255,255,.38); stroke-width: 1.5; transition: filter .12s; }
+.region:hover, .region:focus, .region.on { filter: brightness(1.2); stroke: #fff; stroke-width: 3; outline: none; }
+g.region { stroke: none; }
+g.region:hover, g.region:focus, g.region.on { stroke: none; filter: brightness(1.3) drop-shadow(0 0 3px #fff); }
+.line { cursor: pointer; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: filter .12s; }
+.line:hover, .line:focus, .line.on { filter: brightness(1.35) drop-shadow(0 0 3px #fff); outline: none; }
+.lbl { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 15px; pointer-events: none; text-anchor: middle; }
+.sml { font-family: "Instrument Sans", sans-serif; font-weight: 500; font-size: 11.5px; pointer-events: none; text-anchor: middle; }
+.lt { fill: #f6f3fa; } .dk { fill: #1c1a22; }
+.pin { font-family: "IBM Plex Mono", monospace; font-size: 11px; fill: #fff; paint-order: stroke; stroke: rgba(15,12,22,.88); stroke-width: 3px; pointer-events: none; }
+.readout { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-height: 92px; display: flex; gap: 14px; align-items: flex-start; }
+.readout .sw { width: 34px; height: 34px; border-radius: 6px; flex: none; border: 1px solid var(--line); }
+.readout h2 { font-family: var(--f-display); font-size: 19px; margin: 0 0 2px; }
+.readout p { margin: 0; color: var(--muted); }
+.tag { font-family: var(--f-mono); font-size: 11px; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.tag.prop { color: var(--accent); border-color: var(--accent); }
+.group h3 { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 4px; font-weight: 500; }
+.groups { display: flex; flex-direction: column; gap: 18px; }
+.key { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 0 22px; margin: 0; padding: 0; list-style: none; }
+.key li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 8px 4px; border-bottom: 1px solid var(--line); cursor: pointer; min-width: 0; }
+.key li:hover, .key li.on { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.key .sw { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--line); }
+.key .nm { font-weight: 600; } .key .so { color: var(--muted); font-size: 13px; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+.notes h2 { font-family: var(--f-display); font-size: 17px; margin: 0 0 6px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+@media (max-width: 520px) { .readout { flex-direction: column; } }
+</style>
+
+<main>
+  <header>
+    <span class="status">Map v3 · soils and positions confirmed</span>
+    <h1>Ishphaeno Soil Map</h1>
+    <p class="sub">What the ground is made of, with the water, shores, forest edges and floating things laid over it. Hover or tap anything on the map, or a line in the key, to read it.</p>
+  </header>
+
+  <figure>
+    <svg viewBox="0 0 1060 930" role="img" aria-label="Schematic map of Ishphaeno: volcanic ash in the northwest with red-rock country below it, dark forest in the north, the Xatheloru sea in the northeast, obsidian plains at the center, inverted mountains with lakes in the south, rivers, three shores, a river delta, and floating islands over the west.">
+      <defs>
+        <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)">
+          <rect width="9" height="9" fill="#6e6a66"/><line x1="0" y1="0" x2="0" y2="9" stroke="#a9a49d" stroke-width="3"/>
+        </pattern>
+        <pattern id="strata" width="24" height="16" patternUnits="userSpaceOnUse">
+          <rect width="24" height="16" fill="#b4553a"/><line x1="0" y1="3" x2="24" y2="3" stroke="#d88a5e" stroke-width="3"/><line x1="0" y1="11" x2="24" y2="11" stroke="#8e3b25" stroke-width="3"/>
+        </pattern>
+        <pattern id="scrub" width="10" height="10" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" fill="#6b5d4a" fill-opacity=".62"/><circle cx="3" cy="3" r="1.6" fill="#2b2433"/><circle cx="8" cy="8" r="1.3" fill="#c9b98f"/>
+        </pattern>
+        <pattern id="savanna" width="14" height="12" patternUnits="userSpaceOnUse">
+          <rect width="14" height="12" fill="#86533c"/><path d="M3,11 l-1.5,-6 M3,11 l1.5,-6 M3,11 l0,-7 M10,6 l-1.2,-5 M10,6 l1.2,-5 M10,6 l0,-6" stroke="#c9a85a" stroke-opacity=".75" stroke-width="1.1" fill="none"/>
+        </pattern>
+        <pattern id="greenhill" width="10" height="10" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" fill="#4e7d3e"/><path d="M2,9 l0,-5 M5,9 l0,-7 M8,9 l0,-4" stroke="#9fd07a" stroke-width="1.2" fill="none"/><circle cx="7" cy="3" r="1.3" fill="#e46aa0"/>
+        </pattern>
+        <symbol id="ptree" viewBox="0 0 14 18">
+          <path d="M7,18 L7,7 M7,13 L3,9 M7,10 L11,5 M7,7 L5,2 M7,7 L9,3" stroke="#e9e5dd" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+          <path d="M7,18 L7,7 M7,13 L3,9 M7,10 L11,5 M7,7 L5,2 M7,7 L9,3" stroke="#35323d" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </symbol>
+        <clipPath id="clipTe"><polygon points="340,790 480,820 640,800 720,720 780,780 720,880 500,900 330,880 270,840"/></clipPath>
+      </defs>
+
+      <polygon points="50,440 60,330 70,300 110,210 190,150 300,90 430,95 560,70 640,100 780,60 920,100 960,240 985,330 975,470 950,540 880,600 850,670 790,770 745,885 500,915 300,895 240,835 235,725 160,655 100,560" fill="var(--land)"/>
+
+      <!-- ground -->
+      <polygon class="region" id="r-A" tabindex="0" points="70,292 110,210 190,150 300,90 430,95 440,200 405,252 250,264 150,272" fill="#7a2e24"><title>Ruqorejane: young volcanic ash and rock</title></polygon>
+      <polygon class="region" id="r-P" tabindex="0" points="70,292 150,272 250,264 405,252 380,290 380,330 250,345 150,350 62,350" fill="url(#strata)"><title>Ruqothona: red-rock mesa country</title></polygon>
+      <polygon class="region" id="r-B" tabindex="0" points="430,95 560,70 640,100 650,230 560,300 440,280 380,290 440,200" fill="#41375a"><title>Xathdrubooshle: dark acidic humus</title></polygon>
+      <polygon class="region" id="r-C" tabindex="0" points="640,100 780,60 920,100 960,240 930,380 850,330 770,260 650,230" fill="#2a4766"><title>Xatheloru sea</title></polygon>
+      <polygon class="region" id="r-E" tabindex="0" points="650,230 770,260 850,330 930,380 950,470 880,560 780,520 700,420 650,440 640,330" fill="#c4a768"><title>East river plains: alluvial silt-loam</title></polygon>
+      <polygon class="region" id="r-G" tabindex="0" points="380,330 440,280 560,300 640,330 650,440 630,520 500,560 390,520 340,430" fill="#3a3d4a"><title>Xathhona: glazed obsidian rock</title></polygon>
+      <polygon class="region" id="r-H" tabindex="0" points="62,350 150,350 250,345 380,330 340,430 390,520 300,540 200,480 170,400" fill="url(#savanna)"><title>Ruqoravael: ash loam</title></polygon>
+      <polygon class="region" id="r-I" tabindex="0" points="62,350 150,350 170,400 200,480 180,580 100,540 50,440" fill="url(#hatch)"><title>West cliff country: no soil entry yet</title></polygon>
+      <polygon class="region" id="r-J" tabindex="0" points="200,480 300,540 390,520 420,600 380,680 270,700 180,640 180,580" fill="#9a968f"><title>Pojabooshle: mineral gravel</title></polygon>
+      <polygon class="region" id="r-K" tabindex="0" points="390,520 500,560 630,520 700,572 745,588 790,612 800,640 800,690 740,745 690,765 620,775 540,770 470,745 380,690 420,600" fill="#ebe6d6"><title>Vamihona: saline soil</title></polygon>
+      <polygon class="region" id="r-F" tabindex="0" points="650,440 700,420 780,520 880,560 850,640 800,640 790,612 745,588 700,572 630,520" fill="#3d6a58"><title>Mresibooshle: peaty soil</title></polygon>
+      <polygon class="region" id="r-M" tabindex="0" points="380,690 470,745 540,770 620,775 690,765 740,745 800,690 782,742 760,770 640,800 480,820 340,790 330,730" fill="#c0602f"><title>Pharuhona: volcanic heat zone</title></polygon>
+      <polygon class="region" id="r-N" tabindex="0" points="340,790 480,820 640,800 760,770 780,780 720,880 500,900 330,880 270,840" fill="#f2eee3"><title>TeDrona: ground sobis powder</title></polygon>
+
+      <g clip-path="url(#clipTe)" fill="none" stroke-width="3.2" stroke-linecap="round" opacity=".75" pointer-events="none">
+        <path d="M300,850 C400,820 470,880 560,850 S700,820 760,850" stroke="#7a5aa6"/>
+        <path d="M320,880 C430,860 520,895 620,870 S720,860 780,880" stroke="#8a2a2a"/>
+        <path d="M360,815 C450,840 540,810 640,830" stroke="#8d8a96"/>
+        <path d="M420,895 C500,870 560,890 640,880" stroke="#b9c4d4"/>
+      </g>
+
+      <!-- volcanic mountains in Ruqorejane -->
+      <g class="region" id="r-AM" tabindex="0">
+        <polygon points="98,262 115,228 132,262" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="116,252 140,200 164,252" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="162,248 190,178 218,248" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="214,250 240,188 266,250" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="259,176 275,146 291,176" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="275,170 300,115 325,170" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="323,168 345,120 367,168" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <polygon points="363,172 392,108 421,172" fill="#4a1914" stroke="#e0b49a" stroke-opacity=".55"/>
+        <title>Ruqorejahi: the volcanic mountains</title>
+      </g>
+
+      <!-- farmland belt -->
+      <polygon class="region" id="r-FB" tabindex="0" points="585,196 642,210 650,236 652,330 620,322 576,300 558,268" fill="#d6b04a" fill-opacity=".55" stroke-dasharray="6 4"><title>Farmland belt</title></polygon>
+
+      <!-- forest edges -->
+      <polygon class="region" id="r-T1" tabindex="0" points="415,262 560,284 618,300 575,334 440,312" fill="url(#scrub)" stroke-dasharray="5 4"><title>Forest-to-plain edge</title></polygon>
+      <polygon class="region" id="r-RV" tabindex="0" points="318,250 410,216 450,285 436,368 364,390 305,342" fill="url(#greenhill)" fill-opacity=".85" stroke-dasharray="5 4"><title>Ruqorivael: the green highland</title></polygon>
+
+      <!-- inverted mountains -->
+      <g class="region" id="r-V" tabindex="0">
+        <polygon points="475,580 535,580 505,645" fill="#4b4f63" stroke="#fff" stroke-opacity=".55"/>
+        <polygon points="565,580 625,580 595,645" fill="#4b4f63" stroke="#fff" stroke-opacity=".55"/>
+        <polygon points="625,655 685,655 655,715" fill="#4b4f63" stroke="#fff" stroke-opacity=".55"/>
+        <polygon points="680,610 740,610 710,675" fill="#4b4f63" stroke="#fff" stroke-opacity=".55"/>
+        <title>Vaethpojahi: the inverted mountains</title>
+      </g>
+
+      <!-- shores -->
+      <polyline class="line" id="r-BV" tabindex="0" points="770,260 850,330 930,380" stroke="#0f0d14" stroke-width="8"><title>Qaelvaelvo's coast: black sand</title></polyline>
+      <g class="line" id="r-BE" tabindex="0">
+        <polyline points="930,380 939,336" stroke="#0f0d14" stroke-width="8" fill="none"/>
+        <polyline points="939,336 949,288" stroke="#6b5a3a" stroke-width="8" fill="none"/>
+        <polyline points="949,288 958,246" stroke="#d8b24a" stroke-width="8" fill="none"/>
+        <title>Haelvaemi: east beach, black sand fading to gold</title>
+      </g>
+      <polyline class="line" id="r-BW" tabindex="0" points="641,104 646,166 650,228" stroke="#d6d1c6" stroke-width="6" stroke-dasharray="1 7"><title>Jaeshvaemi: pale pebble shore</title></polyline>
+      <polyline class="line" id="r-BQ" tabindex="0" points="644,98 712,80 780,62" stroke="#a39a8c" stroke-width="6" stroke-dasharray="1 7"><title>Qaeldrael's port shore</title></polyline>
+
+      <!-- water -->
+      <path class="line" id="r-RZ" tabindex="0" d="M658,234 C661,290 654,340 656,400 S664,480 668,540 S666,600 618,650" stroke="#6fb6d9" stroke-width="4"><title>Zelivrrutes</title></path>
+      <path class="line" id="r-RM" tabindex="0" d="M748,256 C752,310 740,360 742,420 S760,500 764,560 S772,630 726,684" stroke="#6fb6d9" stroke-width="4"><title>Malovrrutes</title></path>
+      <path class="line" id="r-RL" tabindex="0" d="M657,346 C684,334 716,352 745,343" stroke="#6fb6d9" stroke-width="3"><title>Linking tributary</title></path>
+      <g id="r-RE" tabindex="0" class="line">
+        <path d="M661,262 C676,268 690,282 698,304 M659,286 C672,297 683,313 688,334 M748,278 C762,288 774,302 782,326 M747,300 C733,311 723,328 721,352 M749,320 C761,334 769,352 772,374 M746,262 C730,264 716,274 708,290" stroke="#6fb6d9" stroke-width="2.6" fill="none"/>
+        <title>Malzevrona: the river delta</title>
+      </g>
+      <g class="region" id="r-LS" tabindex="0"><ellipse cx="515" cy="653" rx="14" ry="8" fill="#9fc7e0" stroke="#fff"/><title>Sheluphol: the mirror lake</title></g>
+      <g class="region" id="r-LX" tabindex="0"><ellipse cx="605" cy="653" rx="14" ry="8" fill="#6f8fa8" stroke="#fff"/><title>Xaelphol</title></g>
+      <g class="region" id="r-LM" tabindex="0"><ellipse cx="711" cy="684" rx="14" ry="8" fill="#6f8fa8" stroke="#fff"/><title>Malophol</title></g>
+      <g class="region" id="r-LD" tabindex="0"><ellipse cx="322" cy="122" rx="13" ry="6" fill="#7fd6c0" stroke="#fff"/><ellipse cx="322" cy="122" rx="17" ry="9" fill="none" stroke="#7fd6c0" stroke-opacity=".5" stroke-dasharray="2 3"/><title>The death lake: a volcanic crater lake that can overturn and release a deadly gas cloud</title></g>
+      <g class="region" id="r-LH" tabindex="0"><ellipse cx="655" cy="722" rx="14" ry="8" fill="#6f8fa8" stroke="#fff"/><title>Hevaphol</title></g>
+      <g class="region" id="r-Q" tabindex="0">
+        <g transform="translate(0 -14)">
+        <path d="M968,141 a9,9 0 1,1 -9,9 M968,146 a4.5,4.5 0 1,1 -4.5,4.5" stroke="#8fc2e4" stroke-width="1.8" fill="none" transform="translate(968 150) scale(1.3) translate(-968 -150)"/>
+        <circle cx="968" cy="150" r="2.6" fill="#8fc2e4"/>
+        <circle cx="936" cy="150" r="9" fill="#e7e1d4" stroke="#1c1a22" stroke-width="1.5"/>
+        <circle cx="958" cy="181" r="9" fill="#e7e1d4" stroke="#1c1a22" stroke-width="1.5"/>
+        <circle cx="958" cy="120" r="9" fill="#e7e1d4" fill-opacity=".4" stroke="#1c1a22" stroke-dasharray="2 2"/>
+        <circle cx="994" cy="131" r="9" fill="#e7e1d4" fill-opacity=".4" stroke="#1c1a22" stroke-dasharray="2 2"/>
+        <circle cx="994" cy="169" r="9" fill="#e7e1d4" fill-opacity=".4" stroke="#1c1a22" stroke-dasharray="2 2"/>
+        </g>
+        <title>Qoruvrin: five islands around a whirlpool, two always visible and three outliers</title>
+      </g>
+
+      <!-- floating islands over Ruqoravael and upper Pojabooshle -->
+      <g class="region" id="r-FI" tabindex="0">
+        <ellipse cx="215" cy="378" rx="24" ry="9" fill="#cfcac3" stroke="#fff" stroke-dasharray="4 3"/>
+        <ellipse cx="312" cy="370" rx="18" ry="7" fill="#cfcac3" stroke="#fff" stroke-dasharray="4 3"/>
+        <ellipse cx="330" cy="455" rx="20" ry="8" fill="#cfcac3" stroke="#fff" stroke-dasharray="4 3"/>
+        <ellipse cx="255" cy="468" rx="16" ry="6" fill="#cfcac3" stroke="#fff" stroke-dasharray="4 3"/>
+        <ellipse cx="240" cy="530" rx="22" ry="8" fill="#cfcac3" stroke="#fff" stroke-dasharray="4 3"/>
+        <title>Floating islands over Ruqoravael and upper Pojabooshle</title>
+      </g>
+
+      <g id="r-RW" tabindex="0" class="line">
+        <path d="M204,387 l-2,16 M216,387 l1,20 M227,387 l3,13 M304,377 l-2,16 M313,377 l1,20 M321,377 l3,13 M321,463 l-2,16 M331,463 l1,20 M340,463 l3,13 M248,474 l-2,16 M256,474 l1,20 M263,474 l3,13 M230,538 l-2,16 M241,538 l1,20 M251,538 l3,13" stroke="#c3d45a" stroke-width="2.6" fill="none"/>
+        <path d="M190,488 l1,14 M183,532 l1,14 M172,562 l1,14" stroke="#c3d45a" stroke-width="2.6" fill="none"/>
+        <path d="M188,502 C205,520 215,545 236,560 M184,546 C200,565 215,590 250,605 M173,576 C185,590 210,610 240,625" stroke="#c3d45a" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+        <path d="M110,358 C124,330 160,300 188,276" stroke="#c3d45a" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+        <circle cx="60" cy="405" r="3.2" fill="#6fb6d9" stroke="#1c1a22"/><circle cx="110" cy="358" r="3.2" fill="#6fb6d9" stroke="#1c1a22"/>
+        <circle cx="188" cy="276" r="4" fill="#f1c27a" stroke="#1c1a22"/><circle cx="196" cy="271" r="3" fill="#b88cf0" stroke="#1c1a22"/><circle cx="181" cy="270" r="3" fill="#e46a6a" stroke="#1c1a22"/>
+        <title>West waterfalls and runoff</title>
+      </g>
+      <g class="region" id="r-XV" tabindex="0">
+        
+        <circle cx="150" cy="380" r="8" fill="transparent"/><circle cx="150" cy="380" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="70" cy="380" r="8" fill="transparent"/><circle cx="70" cy="380" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="150" cy="415" r="8" fill="transparent"/><circle cx="150" cy="415" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="65" cy="435" r="8" fill="transparent"/><circle cx="65" cy="435" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="172" cy="450" r="8" fill="transparent"/><circle cx="172" cy="450" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="130" cy="470" r="8" fill="transparent"/><circle cx="130" cy="470" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="75" cy="468" r="8" fill="transparent"/><circle cx="75" cy="468" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <circle cx="170" cy="500" r="8" fill="transparent"/><circle cx="170" cy="500" r="3.4" fill="#7d8c72" stroke="#e8f1ff" stroke-width="1.2"/>
+        <title>Xathdruvex stands in the cliff country</title>
+      </g>
+
+      <g class="region" id="r-MN" tabindex="0">
+        <rect x="201" y="266" width="8" height="8" fill="#2b2433" stroke="#f1c27a" stroke-width="1.6"/>
+        <rect x="194" y="259" width="22" height="22" fill="transparent"/>
+        <rect x="96" y="396" width="8" height="8" fill="#2b2433" stroke="#f1c27a" stroke-width="1.6"/>
+        <rect x="89" y="389" width="22" height="22" fill="transparent"/>
+        <rect x="91" y="451" width="8" height="8" fill="#2b2433" stroke="#f1c27a" stroke-width="1.6"/>
+        <rect x="84" y="444" width="22" height="22" fill="transparent"/>
+        <rect x="106" y="496" width="8" height="8" fill="#2b2433" stroke="#f1c27a" stroke-width="1.6"/>
+        <rect x="99" y="489" width="22" height="22" fill="transparent"/>
+        <rect x="136" y="536" width="8" height="8" fill="#2b2433" stroke="#f1c27a" stroke-width="1.6"/>
+        <rect x="129" y="529" width="22" height="22" fill="transparent"/>
+        <title>West mines</title>
+      </g>
+
+      <g class="region" id="r-PT" tabindex="0">
+        <rect x="266" y="525" width="16" height="20" fill="transparent"/>
+        <rect x="237" y="546" width="16" height="20" fill="transparent"/>
+        <rect x="277" y="540" width="16" height="20" fill="transparent"/>
+        <rect x="246" y="562" width="16" height="20" fill="transparent"/>
+        <rect x="270" y="554" width="16" height="20" fill="transparent"/>
+        <rect x="258" y="577" width="16" height="20" fill="transparent"/>
+        <rect x="281" y="565" width="16" height="20" fill="transparent"/>
+        <rect x="306" y="560" width="16" height="20" fill="transparent"/>
+        <rect x="265" y="597" width="16" height="20" fill="transparent"/>
+        <rect x="274" y="611" width="16" height="20" fill="transparent"/>
+        <rect x="299" y="585" width="16" height="20" fill="transparent"/>
+        <rect x="291" y="618" width="16" height="20" fill="transparent"/>
+        <rect x="309" y="598" width="16" height="20" fill="transparent"/>
+        <rect x="346" y="583" width="16" height="20" fill="transparent"/>
+        <rect x="359" y="600" width="16" height="20" fill="transparent"/>
+        <rect x="300" y="655" width="16" height="20" fill="transparent"/>
+        <rect x="337" y="635" width="16" height="20" fill="transparent"/>
+        <use href="#ptree" x="268" y="527" width="12" height="16"/>
+        <use href="#ptree" x="239" y="548" width="12" height="16"/>
+        <use href="#ptree" x="279" y="542" width="12" height="16"/>
+        <use href="#ptree" x="248" y="564" width="12" height="16"/>
+        <use href="#ptree" x="272" y="556" width="12" height="16"/>
+        <use href="#ptree" x="260" y="579" width="12" height="16"/>
+        <use href="#ptree" x="283" y="567" width="12" height="16"/>
+        <use href="#ptree" x="308" y="562" width="12" height="16"/>
+        <use href="#ptree" x="267" y="599" width="12" height="16"/>
+        <use href="#ptree" x="276" y="613" width="12" height="16"/>
+        <use href="#ptree" x="301" y="587" width="12" height="16"/>
+        <use href="#ptree" x="293" y="620" width="12" height="16"/>
+        <use href="#ptree" x="311" y="600" width="12" height="16"/>
+        <use href="#ptree" x="348" y="585" width="12" height="16"/>
+        <use href="#ptree" x="361" y="602" width="12" height="16"/>
+        <use href="#ptree" x="302" y="657" width="12" height="16"/>
+        <use href="#ptree" x="339" y="637" width="12" height="16"/>
+        <title>Petrified trees of Pojabooshle</title>
+      </g>
+
+      <g pointer-events="none">
+        <circle cx="500" cy="430" r="7" fill="#f6c34a" stroke="#1c1a22" stroke-width="2"/>
+        <circle cx="850" cy="330" r="6" fill="#f6c34a" stroke="#1c1a22" stroke-width="2"/>
+        <circle cx="652" cy="112" r="6" fill="#f6c34a" stroke="#1c1a22" stroke-width="2"/>
+      </g>
+
+      <!-- cities and estates -->
+      <g class="region" id="r-Vrenoth" tabindex="0"><circle cx="692" cy="258" r="9" fill="transparent"/><circle cx="692" cy="258" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Vrenoth</title></g>
+      <g class="region" id="r-Tholvroth" tabindex="0"><circle cx="345" cy="336" r="9" fill="transparent"/><circle cx="345" cy="336" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Tholvroth</title></g>
+      <g class="region" id="r-Drathmizul" tabindex="0"><circle cx="330" cy="104" r="9" fill="transparent"/><circle cx="330" cy="104" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Drathmizul</title></g>
+      <g class="region" id="r-Phoruvael" tabindex="0"><circle cx="225" cy="378" r="9" fill="transparent"/><circle cx="225" cy="378" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Phoruvael</title></g>
+      <g class="region" id="r-Zunathiel" tabindex="0"><circle cx="312" cy="370" r="9" fill="transparent"/><circle cx="312" cy="370" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Zunathiel</title></g>
+      <g class="region" id="r-Shalivel" tabindex="0"><circle cx="330" cy="455" r="9" fill="transparent"/><circle cx="330" cy="455" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Shalivel</title></g>
+      <g class="region" id="r-Baenglivael" tabindex="0"><circle cx="140" cy="440" r="9" fill="transparent"/><circle cx="140" cy="440" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Baenglivael</title></g>
+      <g class="region" id="r-Mavetovu" tabindex="0"><circle cx="648" cy="667" r="9" fill="transparent"/><circle cx="648" cy="667" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Mavetovu</title></g>
+      <g class="region" id="r-Malovrathiel" tabindex="0"><circle cx="710" cy="624" r="9" fill="transparent"/><circle cx="710" cy="624" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Malovrathiel</title></g>
+      <g class="region" id="r-Veliphetovu" tabindex="0"><circle cx="548" cy="628" r="9" fill="transparent"/><circle cx="548" cy="628" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Veliphetovu</title></g>
+      <g class="region" id="r-Zashelvinore" tabindex="0"><circle cx="595" cy="592" r="9" fill="transparent"/><circle cx="595" cy="592" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Zashelvinore</title></g>
+      <g class="region" id="r-Tovuvami" tabindex="0"><circle cx="572" cy="706" r="9" fill="transparent"/><circle cx="572" cy="706" r="4.6" fill="#ff8a2a" stroke="#1c1a22" stroke-width="1.6"/><title>Tovuvami</title></g>
+      <g class="region" id="r-Xerivael" tabindex="0"><circle cx="528" cy="238" r="9" fill="transparent"/><polygon points="528,232 534,238 528,244 522,238" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Xerivael</title></g>
+      <g class="region" id="r-Qordrathxael" tabindex="0"><circle cx="272" cy="208" r="9" fill="transparent"/><polygon points="272,202 278,208 272,214 266,208" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Qordrathxael</title></g>
+      <g class="region" id="r-Somavrel" tabindex="0"><circle cx="206" cy="376" r="9" fill="transparent"/><polygon points="206,370 212,376 206,382 200,376" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Somavrel</title></g>
+      <g class="region" id="r-Baenglishelu" tabindex="0"><circle cx="126" cy="420" r="9" fill="transparent"/><polygon points="126,414 132,420 126,426 120,420" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Baenglishelu</title></g>
+      <g class="region" id="r-Vosterael" tabindex="0"><circle cx="898" cy="382" r="9" fill="transparent"/><polygon points="898,376 904,382 898,388 892,382" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Vosterael</title></g>
+      <g class="region" id="r-Tholuvex" tabindex="0"><circle cx="714" cy="302" r="9" fill="transparent"/><polygon points="714,296 720,302 714,308 708,302" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Tholuvex</title></g>
+      <g class="region" id="r-Korashel" tabindex="0"><circle cx="668" cy="664" r="9" fill="transparent"/><polygon points="668,658 674,664 668,670 662,664" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Korashel</title></g>
+      <g class="region" id="r-Sheravael" tabindex="0"><circle cx="548" cy="600" r="9" fill="transparent"/><polygon points="548,594 554,600 548,606 542,600" fill="#c026d3" stroke="#fff" stroke-width="1.4"/><title>Sheravael</title></g>
+
+      <g>
+        <text class="lbl lt" x="318" y="205">Ruqorejane</text><text class="sml lt" x="318" y="223">young ash and rock</text>
+        <text class="lbl lt" x="215" y="308" style="font-size:14px">Ruqothona</text><text class="sml lt" x="215" y="325">red-rock mesa band</text>
+        <text class="lbl lt" x="505" y="158">Xathdrubooshle</text><text class="sml lt" x="505" y="176">dark acidic humus</text>
+        <text class="lbl lt" x="810" y="170">Xatheloru</text><text class="sml lt" x="810" y="188">sea</text>
+        <text class="lbl dk" x="840" y="430">East river plains</text><text class="sml dk" x="840" y="448">alluvial silt-loam</text>
+        <text class="lbl lt" x="505" y="372">Xathhona</text><text class="sml lt" x="505" y="390">glazed obsidian</text>
+        <text class="lbl lt" x="262" y="408">Ruqoravael</text><text class="sml lt" x="262" y="426">ash loam</text>
+        <text class="lbl lt" x="104" y="372" style="font-size:13px">Cliff</text><text class="lbl lt" x="104" y="388" style="font-size:13px">country</text>
+        <text class="lbl dk" x="345" y="547">Pojabooshle</text><text class="sml dk" x="345" y="563">mineral gravel</text>
+        <text class="lbl dk" x="440" y="650">Vamihona</text><text class="sml dk" x="440" y="668">saline soil</text>
+        <text class="lbl lt" x="775" y="600">Mresibooshle</text><text class="sml lt" x="775" y="618">peaty soil</text>
+        <text class="lbl lt" x="520" y="776">Pharuhona</text><text class="sml lt" x="520" y="794">heat zone</text>
+        <text class="lbl dk" x="500" y="862">TeDrona</text><text class="sml dk" x="500" y="880">ground sobis powder</text>
+        <text class="pin" x="512" y="448">Xathqaelsel</text>
+        <text class="pin" x="845" y="374">Qaelvaelvo</text>
+        <text class="pin" x="560" y="128">Qaeldrael</text>
+        <text class="pin" x="640" y="214" text-anchor="end">Jaeshvaemi</text>
+        <text class="pin" x="940" y="312" text-anchor="end">Haelvaemi</text>
+        <text class="pin" x="522" y="676" text-anchor="end" style="font-size:10px">Sheluphol</text>
+        <text class="pin" x="550" y="566" text-anchor="middle" style="font-size:10px">Vaethpojahi</text>
+        <text class="pin" x="612" y="676" text-anchor="end" style="font-size:10px">Xaelphol</text>
+        <text class="pin" x="711" y="707" text-anchor="middle" style="font-size:10px">Malophol</text>
+        <text class="pin" x="655" y="745" text-anchor="middle" style="font-size:10px">Hevaphol</text>
+        <text class="pin" x="642" y="430" text-anchor="end" style="font-size:10px">Zelivrrutes</text>
+        <text class="pin" x="772" y="520" style="font-size:10px">Malovrrutes</text>
+        <text class="pin" x="792" y="300" style="font-size:10px">Malzevrona</text>
+        <text class="pin" x="606" y="262" text-anchor="middle" style="font-size:10px">farmland belt</text>
+        <text class="pin" x="28" y="584" style="font-size:10px">waterfalls and runoff</text>
+        <text class="pin" x="323" y="141" text-anchor="middle" style="font-size:10px">death lake</text>
+        <text class="pin" x="972" y="198" text-anchor="middle" style="font-size:10px">Qoruvrin</text>
+        <text class="pin" x="215" y="358" text-anchor="middle" style="font-size:10px">floating islands</text>
+        <text class="pin" x="440" y="326" style="font-size:10px">forest edge</text>
+        <text class="pin" x="378" y="312" text-anchor="middle" style="font-size:10px">Ruqorivael</text>
+      </g>
+
+      <!-- Jamija houses at the four gates -->
+        <g class="region" id="r-GN" tabindex="0"><circle cx="430" cy="32" r="17" fill="transparent"/><g transform="translate(430 32) scale(1.35)" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" style="color:var(--ink)"><circle r="8"/><circle cx="0" cy="-8" r="2.2" fill="#c9972b" stroke="none"/><circle cx="8" cy="0" r="1.4" fill="currentColor" stroke="none"/><circle cx="-8" cy="0" r="1.4" fill="currentColor" stroke="none"/><circle cx="0" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="5.7" cy="5.7" r="1.4" fill="currentColor" stroke="none"/><circle cx="-5.7" cy="5.7" r="1.4" fill="currentColor" stroke="none"/><circle cx="5.7" cy="-5.7" r="1.4" fill="currentColor" stroke="none"/><circle cx="-5.7" cy="-5.7" r="1.4" fill="currentColor" stroke="none"/></g><title>Hashaeqa's house at Naethvatael: the Ring</title></g>
+        <g class="region" id="r-GE" tabindex="0"><circle cx="1034" cy="552" r="17" fill="transparent"/><g transform="translate(1034 552) scale(1.35)" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" style="color:var(--ink)"><circle cx="-5" cy="-7" r="2.6" fill="#c9972b" stroke="none"/><path d="M-5,-4 V5 M-5,5 L-8,10 M-5,5 L-2,10 M-8,0 H-2"/><circle cx="5" cy="-7" r="2.6" fill="#c9972b" stroke="none"/><path d="M5,-4 V5 M5,5 L2,10 M5,5 L8,10 M2,0 H8"/></g><title>Naevoshi's house at Haelvatael: the Two Boys</title></g>
+        <g class="region" id="r-GS" tabindex="0"><circle cx="430" cy="908" r="17" fill="transparent"/><g transform="translate(430 908) scale(1.35)" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" style="color:var(--ink)"><circle cx="0" cy="-11" r="2.2" fill="#c9972b" stroke="none"/><path d="M0,-8 V6 M-5,-4 H5 M0,12 L-2,6 M0,12 L2,6" stroke-width="1.5"/></g><title>Pholaeth's house at Taepvatael: the Dagger</title></g>
+        <g class="region" id="r-GW" tabindex="0"><circle cx="26" cy="286" r="17" fill="transparent"/><g transform="translate(26 286) scale(1.35)" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" style="color:var(--ink)"><circle cx="0" cy="-11" r="2.2" fill="#c9972b" stroke="none"/><path d="M0,-9 L-6,10 M0,-9 L6,10 M-3,2 H3"/></g><title>Zaelith's house at Jaeshvatael: the Dividers</title></g>
+
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" stroke="var(--bg)" stroke-width="3" paint-order="stroke" style="color:var(--muted)">
+        <text x="500" y="45" text-anchor="middle">N · Naethvatael</text>
+        <text x="990" y="560" text-anchor="end">E · Haelvatael</text>
+        <text x="500" y="925" text-anchor="middle">S · Taepvatael</text>
+        <text x="8" y="318">W · Jaeshvatael</text>
+      </g>
+    </svg>
+    <figcaption>Schematic only, not to scale. Gold dots are the capital and the two ports, orange dots are the smaller cities, and violet diamonds are the princes' estates. Ground sits underneath, and water, shores, forest edges, peaks and floating islands are laid over it. The black line along the sea's south shore is Qaelvaelvo's coast, and it fades to gold up the east shore as Haelvaemi. The tiny gray-green dots in the cliff country are Xathdruvex stands, the triangles in the northwest are the volcanic mountains, the dark squares are mines, and the pale-edged bare trees in Pojabooshle are petrified trees. In the Qoruvrin ring, the two solid islands are always visible and the three faint ones are outliers.</figcaption>
+  </figure>
+
+  <div class="readout" id="readout" aria-live="polite"></div>
+
+  <div class="groups" id="groups"></div>
+
+  <section class="notes">
+    <h2>What changed, and what to check</h2>
+    <ul>
+      <li>Ruqothona is now an east-west band of red-rock country directly south of the volcanic mountains, with Ruqoravael below it. In your sketch the band does not reach Pojabooshle, so the Geography doc's line about it bordering Pojabooshle needs editing.</li>
+      <li>Triangles in the northwest mark the volcanic mountains (Ruqorejahi). Their count and positions are guesses.</li>
+      <li>Vamihona now stretches far enough to hold all four mountains and their lakes, with Pharuhona and the forest swamp trimmed to match.</li>
+      <li>Every city and prince estate from your docs is now a dot. Éné confirmed the city and estate positions and the beach lines on 17 Oct 2026. Hover or tap a dot to read about it.</li>
+      <li>The northwest peak and Sheluphol shifted left, and Xaelphol's peak and river end moved closer to them. Hevaphol's peak moved up and to the right, and Malophol's peak moved slightly left.</li>
+      <li>Petrified trees now fill a rough valley down the middle of Pojabooshle, and Sheluphol sits at the base of the northwest peak like the other lakes.</li>
+      <li>The floating islands now sit over Ruqoravael and the top of Pojabooshle, not the cliff country. The cliffs have the mines and waterfalls, and their runoff drains into Pojabooshle.</li>
+      <li>Ruqorivael, the green highland, replaces the old forest-to-savanna edge and overlaps both the Ruqothona band and Ruqoravael. Ruqoravael is now drawn as savanna with grass tufts.</li>
+      <li>Qoruvrin is now a loose ring of five around a whirlpool, outside the sea's northeast corner and touching it.</li>
+      <li>The cliff country soil is confirmed: shallow stony ground over bare rock, with deeper soil only in talus piles and terraces.</li>
+      <li>Earlier changes still stand: four base lakes, rivers from the sea with a linking tributary, Malzevrona's channels, runoff and waterfalls in the West, Xathdruvex stands, the farmland belt, and the three shores.</li>
+      <li>Still open: the Vaethpojahi count and which peak holds which lake.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(function () {
+  var G = [
+    { title: "Ground", items: [
+      { id: "A", name: "Ruqorejane", soil: "Young volcanic ash and rock", fill: "#7a2e24", tag: "Canon", note: "Lamjamon's northwest volcanic edge, part of the Xathovael band that runs to the North Gate. Fresh ash and broken rock with little true soil. Sobi crusts form where the sobil runoff evaporates in its heat." },
+      { id: "P", name: "Ruqothona", soil: "Sandstone mesas, thin sandy soil", fill: "#b4553a", tag: "Canon", note: "Sedona-style red-rock mesa country, drawn as an east-west band directly south of the volcanic mountains, running from the west edge toward the forest's southwest corner. Shaped by long-period mineral erosion, not by aurora or crystal logic. Your Geography doc says it borders Pojabooshle to the south, but in this banded layout Ruqoravael sits between them." },
+      { id: "I", name: "West cliff country", soil: "Shallow stony soil over bare rock", fill: "#6e6a66", tag: "Canon", note: "The cliffs themselves: Zamodes's cliff cities, the mines, and the West Gate deep inside. Soil is a thin gravelly layer in ledges and cracks, since sobil drip leaves a hard crust and keeps organic soil from building up. Deeper soil exists only in talus piles at cliff bases and on built terraces, with soil carried in from Ruqoravael. Waterfalls run down the cliffs and drain into Pojabooshle, and sparse Xathdruvex stands cling to the rock." },
+      { id: "H", name: "Ruqoravael", soil: "Ash loam", fill: "#86533c", tag: "Canon", note: "Volcanic savanna south of the Ruqothona band: tall coarse bunch grass and scattered storage trees on fertile ash, drawn with grass tufts. It is dry, so its water is imported or tapped from the forest edge. Ruqorith herds plow fresh ash into the soil." },
+      { id: "B", name: "Xathdrubooshle", soil: "Dark acidic humus", fill: "#41375a", tag: "Canon", note: "The dark twisted forest in the north. Thick leaf-litter humus, acidic and black." },
+      { id: "FB", name: "Farmland belt", soil: "Cultivated basin (soil not decided)", fill: "#d6b04a", tag: "Canon", note: "A cultivated basin where Xathdrubooshle, Qaeldrael, Jaeshvaemi, Xathhona and the rivers meet. Cooler, shade-touched fields by the forest, drier ground by Xathhona, and wetter paddy-style fields toward the delta." },
+      { id: "G", name: "Xathhona", soil: "Glazed obsidian rock", fill: "#3a3d4a", tag: "Canon", note: "Flat, fire-glazed obsidian with thin glass-sand in the hollows. The capital sits on it." },
+      { id: "E", name: "East river plains", soil: "Alluvial silt-loam", fill: "#c4a768", tag: "Canon", note: "Silt laid down by the eastern rivers and the Malzevrona delta, the most water-rich quarter." },
+      { id: "F", name: "Mresibooshle", soil: "Peaty soil", fill: "#3d6a58", tag: "Canon", note: "The bioluminescent fungal swamp on the east and south border. Wet and dark, with sobi fog threaded through it." },
+      { id: "J", name: "Pojabooshle", soil: "Mineral gravel", fill: "#9a968f", tag: "Canon", note: "The petrified forest on the west and south seam, still spreading where sobil-mineral water reaches new plants. Mamon's islands float over its upper part." },
+      { id: "K", name: "Vamihona", soil: "Saline soil", fill: "#ebe6d6", tag: "Canon", note: "Salt flats left by evaporating Xatheloru water on the dry side of the mountains. Salt is sacred here." },
+      { id: "M", name: "Pharuhona", soil: "Heat-shimmer volcanic rock", fill: "#c0602f", tag: "Canon", note: "The heat zone before TeDrona. Rock hot enough to make permanent shimmer and mirages." },
+      { id: "N", name: "TeDrona", soil: "Ground sobis powder", fill: "#f2eee3", tag: "Decided look", note: "Bone-white, granular, translucent-ish sand with veins colored by the emotion of the ground sobi. The dunes sing." }
+    ]},
+    { title: "Land overlays", items: [
+      { id: "T1", name: "Forest-to-plain edge", soil: "Humus thinning into obsidian rubble", fill: "#6b5d4a", tag: "Canon", note: "Where Xathdrubooshle gives way to Xathhona. Trees thin out, leaf-litter pockets sit in cracks of glazed rock, and the ground turns to dark rubble." },
+      { id: "RV", name: "Ruqorivael", soil: "Dark ash loam with forest humus", fill: "#4e7d3e", tag: "Canon", note: "The green highland on the forest's west edge, an offshoot of greater Ruqoravael. It overlaps the Ruqothona band and Ruqoravael, with Tholvroth as its border town. Full aurora exposure and humidity drifting from the Xathdru give it fine-bladed lawn-like grass and jewel-toned flowering shrubs (Ruqorivit)." },
+      { id: "XV", name: "Xathdruvex stands", soil: "Stunted, crystal-barked trees", fill: "#7d8c72", tag: "Canon", note: "The hardy Xathdru descendant of the cliff country, adapted to constant sobil drip. Stunted and shrub-like, with dull crystalline bark, in scattered isolated stands, never a continuous canopy. The positions here are only illustrative." },
+      { id: "MN", name: "West mines", soil: "Sobi and ore mines", fill: "#2b2433", tag: "Canon", note: "Zamodes holds the main mining operations along the western cliffs, and most West sobi is old sedimentary sobi. One mark sits at the volcanic seam for the disputed mine between Lamjamon and Zamodes. Positions are only illustrative." },
+      { id: "PT", name: "Petrified trees", soil: "Calcified standing Xathdru", fill: "#35323d", tag: "Canon", note: "Ancient calcified trees, killed by sobil-mineral water and still spreading at the edges. Drawn as a rough valley of standing trees down the middle of Pojabooshle. The positions are symbolic." },
+    ]},
+    { title: "Water", items: [
+      { id: "C", name: "Xatheloru", soil: "Inland sea", fill: "#2a4766", tag: "Canon", note: "Straddles north and east. Tides follow Toluqavadoth's breathing, and the Qoruvrin ring shelters its far eastern edge." },
+      { id: "RZ", name: "Zelivrrutes", soil: "Rapid river", fill: "#6fb6d9", tag: "Proposed route", note: "Leaves the sea and runs south along Mephithoveles's eastern boundary, past Mresibooshle, toward the southern lakes. Drawn ending at Xaelphol. Dagan's river eels live in it." },
+      { id: "RM", name: "Malovrrutes", soil: "Strong river", fill: "#6fb6d9", tag: "Proposed route", note: "Starts at the sea (decided), runs south through Mresibooshle and feeds Malophol under Malovrathiel's mountain. Salmon-equivalent Vrutolin swim up it from the sea." },
+      { id: "RL", name: "Linking tributary", soil: "Small channel between the rivers", fill: "#6fb6d9", tag: "Decided", note: "A small tributary joining Zelivrrutes to Malovrrutes inside the Malzevrona delta country. Its exact position is a guess." },
+      { id: "RE", name: "Malzevrona", soil: "River delta", fill: "#6fb6d9", tag: "Canon", note: "The marshy delta where the two rivers leave the sea, with channels branching off both of them. Stilted villages and boats over roads. 'The Thousand Fingers' may become a nickname for the channels (open)." },
+      { id: "RW", name: "West waterfalls and runoff", soil: "Sobil-tainted water, no rivers", fill: "#c3d45a", tag: "Decided", note: "The West has no rivers, only springs and runoff. Sobil-tainted waterfalls fall from the floating islands onto Ruqoravael and the top of Pojabooshle, and down the cliff faces. The runoff drains into Pojabooshle and petrifies what it touches. A little sobi crust forms at the volcanic edge, as your docs have it, but that now needs a source." },
+      { id: "LS", name: "Sheluphol", soil: "Mirror lake", fill: "#9fc7e0", tag: "Canon", note: "Beneath Veliphetovu near Zarazael's estate, drawn at the base of the northwest peak with Xaelphol's peak close beside it. Mirror-still, reflecting the aurora with more clarity than the others." },
+      { id: "LX", name: "Xaelphol", soil: "Lakebed silt and clay, brackish", fill: "#6f8fa8", tag: "Canon", note: "Beneath Zashelvinore, the mountain city in Zarazael's shadow. Which peak holds which lake is a guess, except Sheluphol and Malophol." },
+      { id: "LM", name: "Malophol", soil: "Lakebed silt and clay, brackish", fill: "#6f8fa8", tag: "Canon", note: "Beneath Malovrathiel, the major trade city named for the river that feeds it. Drawn under the east peak." },
+      { id: "LH", name: "Hevaphol", soil: "Lakebed silt and clay, brackish", fill: "#6f8fa8", tag: "Canon", note: "Beneath Mavetovu, Belishael's capital. Quieter in reputation than Sheluphol. Drawn under the south peak." }
+    ]},
+    { title: "Shores", items: [
+      { id: "BV", name: "Qaelvaelvo's coast", soil: "Black volcanic-glass sand", fill: "#0f0d14", tag: "Decided", note: "Basalt and glass sand, a magnetite fraction at the waterline, and a little ground sobi. A possible ironsand source." },
+      { id: "BE", name: "Haelvaemi", soil: "Black sand fading to olivine-gold", fill: "#d8b24a", tag: "Canon", note: "Starts black where it meets Qaelvaelvo's boardwalk, mixes in the middle, and ends gold and olivine-rich toward the gate end. Thin black bands of heavy minerals could streak the gold." },
+      { id: "BW", name: "Jaeshvaemi", soil: "Pale rounded volcanic pebbles", fill: "#d6d1c6", tag: "Canon", note: "Pale pebble shingle with pumice at the high-tide line. Loose and noisy underfoot, which is one reason a boardwalk joins it to Qaeldrael." },
+      { id: "BQ", name: "Qaeldrael's port shore", soil: "Pale pebble shingle", fill: "#a39a8c", tag: "Canon", note: "Jaeshvaemi runs almost to the port's docks, so this reads as the same shingle shore. That would settle the three conflicting descriptions in your docs." }
+    ]},
+    { title: "Peaks and sky", items: [
+      { id: "V", name: "Vaethpojahi", soil: "Inverted mountains", fill: "#4b4f63", tag: "Canon", note: "Wide at the top, narrow at the base, with cities at the base. Belishael holds the tops and Zarazael the land below. Rooted to the ground. Four are drawn, and the count is a guess." },
+      { id: "LD", name: "Death lake", soil: "Volcanic crater lake", fill: "#7fd6c0", tag: "Decided", note: "A calm-looking crater lake just south of Drathmizul, between the city and the volcanic mountains. Model: Lake Nyos in Cameroon (verify). Gas builds up in the deep water until it overturns and a heavy gas cloud rolls down the valleys. GAS RULES. Trigger: violent Qoruvrak weather, possibly a double Qoruvrak. Humans and animals cannot survive it. Infernals (Vatrajaxu and Vatrajaxo) breathe, but can hold their breath about ten times longer than the best human and need less oxygen, so the gas gives them an incapacitating blackout, and prolonged exposure can be lethal. Everyone must evacuate or shelter. The gas is heavy and pools in low ground, so cellars and pits are the deadliest places unless sealed. Refuge is high ground in the mountains, as a temporary migratory camp. Open: which valleys the gas follows, the warning system, how long a blackout lasts before it turns lethal, and the refuge details." },
+      { id: "AM", name: "Ruqorejahi", soil: "Volcanic mountains", fill: "#4a1914", tag: "Canon", note: "The volcanic mountains of the Ruqorejane system (one mountain is a Ruqoreja). The triangles are symbolic, and the count and positions are guesses." },
+      { id: "FI", name: "Floating islands", soil: "Mamon's islands", fill: "#cfcac3", tag: "Canon", note: "They launched near Ruqothona and drift south over Ruqoravael and the top of Pojabooshle, 1 to 7 cm per Earth year. Their runoff is what creates Pojabooshle." },
+      { id: "Q", name: "Qoruvrin", soil: "Ring of five islands", fill: "#e7e1d4", tag: "Decided", note: "Five islands in a loose ring around a whirlpool, just outside the sea's northeast corner and touching it. Two are always visible (solid) and three are outliers (faint). Your Compendium says eight, so that needs fixing." }
+    ]},
+    { title: "Gates and Jamija houses", items: [
+      { id: "GN", name: "North gate, Naethvatael", soil: "Hashaeqa's house", fill: "#c9972b", tag: "Canon", note: "The Ring, Hashaeqa's sign on the sky map. She is possessive and proud." },
+      { id: "GE", name: "East gate, Haelvatael", soil: "Naevoshi's house", fill: "#c9972b", tag: "Canon", note: "The Two Boys, Naevoshi's sign, standing for her two sons as small children." },
+      { id: "GS", name: "South gate, Taepvatael", soil: "Pholaeth's house", fill: "#c9972b", tag: "Canon", note: "The Dagger, Pholaeth's sign. The tip points inward, toward the centre of the realm." },
+      { id: "GW", name: "West gate, Jaeshvatael", soil: "Zaelith's house", fill: "#c9972b", tag: "Canon", note: "The Dividers, Zaelith's sign, the builder's drafting compass." }
+    ]},
+    { title: "Cities and estates", items: [
+      { id: "Vrenoth", name: "Vrenoth", soil: "Dagan's capital", fill: "#ff8a2a", tag: "Canon", note: "Dagan's capital, on the Zelivrrutes' far bank near the delta." },
+      { id: "Tholvroth", name: "Tholvroth", soil: "Lamjamon's frontier city", fill: "#ff8a2a", tag: "Canon", note: "A border town between Ruqorivael and Ruqothona, and a waypoint for informal access to the forest-edge springs." },
+      { id: "Drathmizul", name: "Drathmizul", soil: "Lamjamon's volcano city", fill: "#ff8a2a", tag: "Canon", note: "A Spartan military headquarters and mining plateau by the volcano, near the North Gate." },
+      { id: "Phoruvael", name: "Phoruvael", soil: "Mamon's capital island city", fill: "#ff8a2a", tag: "Canon", note: "On top of the largest floating island, with a cliff city carved into its side." },
+      { id: "Zunathiel", name: "Zunathiel", soil: "Mamon's second floating city", fill: "#ff8a2a", tag: "Canon", note: "A company town whose name echoes House Zunaeliq, his treasury house." },
+      { id: "Shalivel", name: "Shalivel", soil: "Mamon's third floating island", fill: "#ff8a2a", tag: "Canon", note: "A smaller island with no spring of its own, with its city built into the underside." },
+      { id: "Baenglivael", name: "Baenglivael", soil: "Zamodes's cliff city", fill: "#ff8a2a", tag: "Canon", note: "Shangri-La-meets-Vegas, carved into the cliff face. His quiet retreat Shalivael sits within it, per the Geography doc." },
+      { id: "Mavetovu", name: "Mavetovu", soil: "Belishael's capital", fill: "#ff8a2a", tag: "Canon", note: "On top of an inverted mountain, named sarcastically \"City of Dreams\"." },
+      { id: "Malovrathiel", name: "Malovrathiel", soil: "Major trade city", fill: "#ff8a2a", tag: "Canon", note: "East of Mavetovu on a large inverted mountain whose base cups Malophol. Named for the river that feeds it." },
+      { id: "Veliphetovu", name: "Veliphetovu", soil: "Zarazael's capital", fill: "#ff8a2a", tag: "Canon", note: "The sparkling city, nestled between two mountains near Sheluphol." },
+      { id: "Zashelvinore", name: "Zashelvinore", soil: "Satellite town", fill: "#ff8a2a", tag: "Canon", note: "A mountain city, built on top of the peak above Xaelphol, in Zarazael's shadow. Veliphetovu is his capital below, between the two lakes. Spelled Vashelvinore in some docs." },
+      { id: "Tovuvami", name: "Tovuvami", soil: "The city of salt", fill: "#ff8a2a", tag: "Canon", note: "In the Vamihona flats between the mountain clusters." },
+      { id: "Xerivael", name: "Xerivael", soil: "Mephithoveles's estate", fill: "#c026d3", tag: "Canon", note: "Within Xathdrubooshle, not far from the capital." },
+      { id: "Qordrathxael", name: "Qordrathxael", soil: "Lamjamon's fortress", fill: "#c026d3", tag: "Canon", note: "His military estate. The docs conflict: the Canon Ref puts it in the volcanic territory and the Geography doc puts his estate in Ruqoravael proper. Drawn in Ruqorejane, in the gap between the two mountain groups." },
+      { id: "Somavrel", name: "Somavrel", soil: "Mamon's estate", fill: "#c026d3", tag: "Canon", note: "On the largest floating island, Phoruvael." },
+      { id: "Baenglishelu", name: "Baenglishelu", soil: "Zamodes's estate", fill: "#c026d3", tag: "Canon", note: "A private island estate on top of the cliff above Baenglivael." },
+      { id: "Vosterael", name: "Vosterael", soil: "Belzevuv's estate", fill: "#c026d3", tag: "Canon", note: "In the southeastern corner of Qaelvaelvo." },
+      { id: "Tholuvex", name: "Tholuvex", soil: "Dagan's cave estate", fill: "#c026d3", tag: "Canon", note: "Beside the Zelivrrutes, below and a little east of Vrenoth. Sobil drips through it." },
+      { id: "Korashel", name: "Korashel", soil: "Belishael's estate", fill: "#c026d3", tag: "Canon", note: "At the eastern corner of Mavetovu, on top of its mountain." },
+      { id: "Sheravael", name: "Sheravael", soil: "Zarazael's estate", fill: "#c026d3", tag: "Canon", note: "Just north of Veliphetovu, outside the city. The Canon Ref city table calls it Sheravael; its prince table says Ilvaenore and the Compendium says Vilvaenore. Éné may have renamed it Zilvanore to look distinct from Shalivel; no doc I can find has that spelling." }
+    ]}
+  ];
+  var groups = document.getElementById("groups"), out = document.getElementById("readout"), cur = null;
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function cls(t) { return /^(Proposed|Open|Placeholder|Canon, to|Canon name)/.test(t) ? "prop" : ""; }
+  function show(d) {
+    out.innerHTML = '<div class="sw" style="background:' + d.fill + '"></div><div><h2>' + esc(d.name) +
+      ' <span class="tag ' + cls(d.tag) + '">' + esc(d.tag) + '</span></h2><p><strong>' + esc(d.soil) + '.</strong> ' + esc(d.note) + '</p></div>';
+  }
+  function mark(id, on) {
+    var r = document.getElementById("r-" + id), k = document.getElementById("k-" + id);
+    if (r) r.classList.toggle("on", on);
+    if (k) k.classList.toggle("on", on);
+  }
+  function pick(d) { if (cur) mark(cur, false); cur = d.id; mark(d.id, true); show(d); }
+  var first = null;
+  G.forEach(function (g) {
+    var sec = document.createElement("section"); sec.className = "group";
+    var h = document.createElement("h3"); h.textContent = g.title; sec.appendChild(h);
+    var ul = document.createElement("ul"); ul.className = "key";
+    g.items.forEach(function (d) {
+      if (d.id === "N") first = d;
+      var li = document.createElement("li"); li.id = "k-" + d.id;
+      li.innerHTML = '<span class="sw" style="background:' + d.fill + '"></span><span><span class="nm">' + esc(d.name) +
+        '</span><br><span class="so">' + esc(d.soil) + '</span></span><span class="tag ' + cls(d.tag) + '">' + esc(d.tag) + '</span>';
+      li.addEventListener("click", function () { pick(d); });
+      ul.appendChild(li);
+      var r = document.getElementById("r-" + d.id);
+      if (r) {
+        r.addEventListener("mouseenter", function () { pick(d); });
+        r.addEventListener("focus", function () { pick(d); });
+        r.addEventListener("click", function () { pick(d); });
+      }
+    });
+    sec.appendChild(ul); groups.appendChild(sec);
+  });
+  pick(first);
+})();
+</script>

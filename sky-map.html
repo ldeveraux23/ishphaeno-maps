@@ -1,0 +1,597 @@
+<title>Ishphaeno Sky Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one looking-up dome on the left, season and haze controls plus a readout on the right,
+   and a full-width "what can you read right now" list below. */
+:root {
+  --bg: #0e0b16;
+  --panel: #171325;
+  --panel2: #1f1a31;
+  --fg: #ebe6f5;
+  --muted: #a39bb8;
+  --line: #2e2745;
+  --accent: #e9c46a;
+  --accent-ink: #1a1204;
+  --good: #7fd6a4;
+  --warn: #f0b35a;
+  --focus: #9db8ff;
+  --display: "Marcellus", "Cormorant Garamond", Georgia, serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f1f8; --panel: #ffffff; --panel2: #ece7f4; --fg: #1d1830; --muted: #5f5875;
+    --line: #d8d1e6; --accent: #8a5a00; --accent-ink: #ffffff; --good: #1f7a4c; --warn: #8f5200; --focus: #2b4fd8;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f4f1f8; --panel: #ffffff; --panel2: #ece7f4; --fg: #1d1830; --muted: #5f5875;
+  --line: #d8d1e6; --accent: #8a5a00; --accent-ink: #ffffff; --good: #1f7a4c; --warn: #8f5200; --focus: #2b4fd8;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; letter-spacing: 0.01em; }
+h1 { font-size: clamp(28px, 4.5vw, 40px); line-height: 1.1; }
+h2 { font-size: 22px; }
+h3 { font-size: 20px; }
+.lede { color: var(--muted); max-width: 62ch; margin: 8px 0 24px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+figure { margin: 0; }
+figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; max-width: 64ch; }
+svg#sky { display: block; width: 100%; height: auto; max-width: 760px; margin: 0 auto; touch-action: manipulation; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.seasons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.seasons button {
+  display: flex; align-items: center; gap: 8px; text-align: left;
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font: inherit; font-size: 13px; cursor: pointer; min-height: 40px;
+}
+.seasons button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.sw { width: 14px; height: 14px; border-radius: 50%; flex: none; border: 1px solid rgba(255,255,255,.35); }
+.row-ctl { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
+.ctl label { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; margin-bottom: 4px; }
+.ctl output { color: var(--muted); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; min-height: 38px;
+}
+.btn:hover { border-color: var(--accent); }
+.layers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; font-size: 14px; }
+.layers label, .chk { display: flex; align-items: center; gap: 8px; }
+.chk[aria-disabled="true"] { opacity: .5; }
+.status { font-size: 14px; border-left: 3px solid var(--accent); padding: 2px 0 2px 10px; }
+.status b { font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chip.prop { border-color: var(--accent); color: var(--accent); }
+.readout p { margin: 0 0 10px; }
+.readout dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+.readout dt { color: var(--muted); }
+.readout dd { margin: 0; }
+.reading { margin-top: 32px; }
+.reading .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 12px; }
+.group h3 { font-size: 15px; font-family: var(--body); font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+.rowbtn {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;
+  background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 6px; font: inherit; font-size: 14px; cursor: pointer; text-align: left; min-height: 40px;
+}
+.rowbtn[aria-pressed="true"] { border-color: var(--accent); }
+.stat { font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stat.whole { color: var(--good); }
+.stat.partial { color: var(--warn); }
+.stat.hidden { color: var(--muted); }
+.notes { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.notes ul { margin: 8px 0 0; padding-left: 18px; }
+.notes li { margin-bottom: 6px; }
+.tag { font-size: 12px; color: var(--accent); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.compass { fill: var(--muted); font-family: var(--body); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.fig { cursor: pointer; }
+.fig .fl { stroke: #d8d0ee; stroke-width: 1; }
+.fig.on .fl { stroke: #e9c46a; stroke-width: 1.6; }
+.fig text { font-family: var(--display); font-size: 13px; fill: #ece6f7; paint-order: stroke; stroke: #0b0912; stroke-width: 3px; stroke-linejoin: round; }
+.fig.on text { fill: #f6d98a; }
+.tiny { font-family: var(--body); font-size: 10px; fill: #b9b0cf; paint-order: stroke; stroke: #0b0912; stroke-width: 3px; }
+@keyframes sway { 0%, 100% { transform: translateY(calc(var(--amp) * -1)); } 50% { transform: translateY(var(--amp)); } }
+.sway { animation: sway var(--dur) ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: .5; } 50% { transform: scale(var(--bs)); opacity: 1; } }
+.ripple { transform-box: fill-box; transform-origin: center; animation: breathe var(--bd) ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sway, .ripple { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Ishphaeno Sky Map</h1>
+    <p class="lede">The membrane seen from the ground, with the Toluqavel band, the haze and the Velqael. Change the season, the hour and the haze to see which figures you can read.</p>
+  </header>
+
+  <div class="grid">
+    <figure>
+      <svg id="sky" viewBox="-40 0 880 800" role="img" aria-label="Chart of Ishphaeno's sky seen looking up, with the aurora band, haze and constellations">
+        <defs>
+          <radialGradient id="domeG" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#241c3f"/><stop offset="0.7" stop-color="#150f26"/><stop offset="1" stop-color="#0a0714"/>
+          </radialGradient>
+          <linearGradient id="bandG" x1="0" y1="0" x2="0" y2="1">
+            <stop id="bs0" offset="0" stop-color="#d02a47" stop-opacity="0"/>
+            <stop id="bs1" offset="0.5" stop-color="#d02a47" stop-opacity="0.7"/>
+            <stop id="bs2" offset="1" stop-color="#d02a47" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+          <filter id="soft2" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="30"/></filter>
+          <filter id="glowF" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+          <clipPath id="domeClip"><circle cx="400" cy="400" r="340"/></clipPath>
+        </defs>
+        <circle cx="400" cy="400" r="340" fill="url(#domeG)"/>
+        <g id="ripples" fill="none" stroke="#cbbfee" stroke-opacity="0.12"></g>
+        <circle id="darkOv" cx="400" cy="400" r="340" fill="#05030b" opacity="0"/>
+        <g id="gBand"></g>
+        <g id="gSpires"></g>
+        <g id="gGlow" filter="url(#glowF)" clip-path="url(#domeClip)"></g>
+        <g id="gHaze" clip-path="url(#domeClip)"></g>
+        <circle cx="400" cy="400" r="340" fill="none" stroke="#7d6fa8" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="2 5"/>
+        <g id="gFig"></g>
+        <g id="gComp"></g>
+      </svg>
+      <figcaption id="cap">Chart as seen looking up from the ground, so east is on the left. The centre is the zenith above Xathqaelsel and the rim is the outer edge of the realm at the four gates.</figcaption>
+    </figure>
+
+    <aside class="side">
+      <div class="card">
+        <p class="label">Season</p>
+        <div class="seasons" id="seasonBtns"></div>
+        <div class="row-ctl">
+          <div class="ctl">
+            <label for="period">Period of the day <output id="periodOut">3 of 8</output></label>
+            <input type="range" id="period" min="1" max="8" step="1" value="3">
+          </div>
+          <div class="ctl">
+            <label for="haze">Haze <output id="hazeOut">medium</output></label>
+            <input type="range" id="haze" min="0" max="100" step="1" value="40">
+          </div>
+          <div class="btns">
+            <button class="btn" id="wander" type="button">Wander the band</button>
+            <button class="btn" id="resetHead" type="button">Reset heading</button>
+          </div>
+          <label class="chk" id="stallWrap"><input type="checkbox" id="stall"> Stall the band (cobalt only)</label>
+          <label class="chk"><input type="checkbox" id="look" checked> Looking up (east on the left)</label>
+          <div>
+            <p class="label">Layers</p>
+            <div class="layers">
+              <label><input type="checkbox" data-layer="band" checked> Band</label>
+              <label><input type="checkbox" data-layer="haze" checked> Haze</label>
+              <label><input type="checkbox" data-layer="fig" checked> Velqael</label>
+              <label><input type="checkbox" data-layer="lab" checked> Names</label>
+              <label><input type="checkbox" data-layer="spires" checked> Hanging spires</label>
+              <label><input type="checkbox" data-layer="comp" checked> Gate bearings</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card status" id="status" aria-live="polite"></div>
+      <div class="card readout" id="readout" aria-live="polite"></div>
+    </aside>
+  </div>
+
+  <section class="reading">
+    <h2>What you can read right now</h2>
+    <p class="lede" style="margin-bottom:0">A figure is whole when every star shows, partial when the haze or the dark hides some, and hidden when none shows. Pick one to see it on the chart.</p>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <section class="notes">
+    <div class="card">
+      <h2>How the chart works</h2>
+      <ul>
+        <li>The band lights the stars it passes. Where it is tells you the hour, loosely, because it wanders.</li>
+        <li>Haze hides stars. It is thickest in the east and thinnest over the dry south, so figures there read whole more often.</li>
+        <li>The stars never rise or set. The figures are a map, not a clock.</li>
+        <li>Each figure has an anchor star, ringed in gold, that gives a bearing. The Sobravrek also has the Rivals, a dashed-ring pair, as a second anchor. Gold dots on the two heroes are rank marks.</li>
+        <li>Dark hanging spires are rare and high. A few hang in the southwest. Their drips evaporate into a faint trail that drifts east, shown as a lighter streak on the haze layer and stronger as you raise the haze slider.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Rules and open items</h2>
+      <ul>
+        <li><span class="tag">Decided</span> No living person gets a figure. The dead, animals, objects and absences do.</li>
+        <li><span class="tag">Decided</span> The band's wandering and the anchor stars are canon.</li>
+        <li><span class="tag">Decided</span> The two antler tips of the Sobravrek are called the Rivals. They echo the two bonded princes, the brothers Zamodes and Lamjamon, and they work as a paired second anchor.</li>
+        <li><span class="tag">Decided</span> The Empty Seat is a dark constellation, a black throne you read against the band and haze.</li>
+        <li><span class="tag">Decided</span> The membrane is a permission and barrier at the realm's edges. It does not look or feel like a physical thing there.</li>
+        <li><span class="tag">Decided</span> Spires gather and echo over the mineral-heavy southwest.</li>
+        <li><span class="tag">Open</span> Whether the Vaethpojahi could come from fallen spires, and what they would be made of.</li>
+        <li><span class="tag">Open</span> Whether unauthorized crossings are possible at all.</li>
+        <li><span class="tag">Decided</span> Spires on the floating islands and the Vaethpojahi top out at 5 km, below the haze.</li>
+        <li><span class="tag">Decided</span> Spire drips evaporate into a lighter haze that drifts east on the slow wind pulses, drawn here as a lighter streak on the haze layer.</li>
+        <li><span class="tag">Decided</span> The drifted haze condenses into sobil in the eastern caves, where House Shorael harvests it. How risky the drifted haze itself is stays open.</li>
+        <li><span class="tag">Canon</span> All figures, shapes, positions, anchor stars, season colors, the band's wandering and the English names are confirmed canon (Éné, 17 Oct 2026).</li>
+        <li><span class="tag">Open</span> Vatraxu names for every figure, including the two heroes.</li>
+        <li><span class="tag">Open</span> Court names and folk names for each figure.</li>
+        <li><span class="tag">Open</span> Whether each noble House adopts a Velqael as an emblem.</li>
+        <li><span class="tag">Open</span> New names for the horizon direction-houses, so they do not clash with the noble Houses.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var CX = 400, CY = 400, R = 340;
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var smooth = function (a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  var rot = function (pts, deg) {
+    var a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    return pts.map(function (p) { return [p[0] * c - p[1] * s, p[0] * s + p[1] * c, p[2], p[3]]; });
+  };
+  var ringPts = function (r, n, s) {
+    var out = [];
+    for (var i = 0; i < n; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; out.push([r * Math.cos(a), r * Math.sin(a), s]); }
+    return out;
+  };
+  var closed = function (n) { var o = []; for (var i = 0; i < n; i++) o.push([i, (i + 1) % n]); return o; };
+
+  var SEASONS = [
+    { k: 'crimson', casual: 'Xathruq', formal: 'Ruxathos', name: 'Deep crimson', color: '#d02a47', w: 130, head: 22, dark: 0.12, amp: 3, dur: 10, int: 0.8, tag: 'Canon', note: 'Fairly steady, strong and bright.' },
+    { k: 'gold', casual: 'Veluphe', formal: 'Pheluvorath', name: 'Sulfur gold', color: '#e0b82a', w: 190, head: -38, dark: 0.05, amp: 3, dur: 11, int: 0.95, tag: 'Canon', note: 'The brightest and steadiest season, with a broad band.' },
+    { k: 'silver', casual: 'Seluphera', formal: 'Phereluthosel', name: 'Pale silver', color: '#cfd9ec', w: 140, head: 68, dark: 0.1, amp: 2, dur: 14, int: 0.7, tag: 'Canon', note: 'The calmest and most regular season.' },
+    { k: 'green', casual: 'Zeluth', formal: 'Voragelu', name: 'Toxic green', color: '#78e04f', w: 120, head: 140, dark: 0.12, amp: 16, dur: 2.6, int: 0.85, tag: 'Canon', note: 'Restless. The band speeds up and surges.' },
+    { k: 'violet', casual: 'Xaelshe', formal: 'Xaelmavorath', name: 'Violet-black', color: '#7a4de0', w: 70, head: 100, dark: 0.6, amp: 3, dur: 16, int: 0.7, tag: 'Decided', note: 'The sky is nearly black. The band is narrow and slow, and regions away from it are genuinely dark, like arctic winter.' },
+    { k: 'cobalt', casual: 'Qoruvrak', formal: 'Qoruvrath', name: 'Cobalt blue', color: '#3a74ff', w: 115, head: 10, dark: 0.2, amp: 6, dur: 3.2, int: 0.85, tag: 'Decided', note: 'The band can stall and leave regions dark without warning. Ripples turn violent.' }
+  ];
+
+  /* Shapes are drawn in screen pixels as seen looking up. Positions (gx, gy) use the ground map's frame:
+     x runs east, y runs south, 0,0 is Xathqaelsel, and the rim is 1. */
+  var heads = [];
+  for (var i = 0; i < 9; i++) { var a = (-170 + 20 * i) * Math.PI / 180, r = 42 + (i % 2) * 10; heads.push([r * Math.cos(a), 16 + r * Math.sin(a), i === 4 ? 2.6 : 1.8]); }
+  var navStars = [[0, 16, 3.0], [0, 50, 1.4]].concat(heads);
+  var navLines = [[0, 1]].concat(heads.map(function (_, i) { return [0, i + 2]; }));
+  var ring8 = ringPts(16, 8, 1.5); ring8[0][2] = 2.8;
+  var fish = rot([[52, 0, 2.2], [26, -14, 1.7], [-2, -16, 1.5], [-34, -5, 1.6], [-56, -18, 1.6], [-56, 9, 1.6], [4, 10, 1.5], [38, 8, 1.5]], 28);
+
+  var FIGS = [
+    { id: 'seat', name: 'The Empty Seat', group: 'Court and capital', gx: 0, gy: 0, anchor: 1, lab: [0, 62, 'middle'], hit: 70,
+      stars: [[-20, -50, 2.2], [20, -50, 2.6], [-20, 0, 1.8], [20, 0, 1.8], [-28, 14, 1.8], [28, 14, 1.8], [-24, 42, 1.6], [24, 42, 1.6]],
+      lines: [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 5], [4, 6], [5, 7]], absence: [0, -22], dark: [0, 1, 3, 5, 7, 6, 4, 2],
+      tag: 'Canon',
+      note: 'A dark constellation: a throne-shaped patch of black, edged by a few faint glints, that you read against the band and the haze. It has one gap where a sitter would be. The gap is Sadok\'s absence. Xathqaelsel means "seat of the dark crown" and he is imprisoned in TeDrona.',
+      use: 'Marks the middle of the realm, over Xathqaelsel. It is easiest to see when the band or haze glows behind it.' },
+    { id: 'nav', name: 'The Navaxushe', group: 'Court and capital', gx: 0.27, gy: 0, anchor: 0, lab: [0, 76, 'middle'], hit: 66,
+      stars: navStars, lines: navLines,
+      tag: 'Canon',
+      note: 'Nine stars for the nine heads, fanned from one body star. It is Sadok\'s symbol. It stands for the species, not the last individual, Qavasha.',
+      use: 'Sits beside the Seat, on its east side in the ground frame.' },
+    { id: 'xat', name: 'The Xatholun', group: 'Beasts and the sea', gx: 0.52, gy: -0.4, anchor: 12, lab: [0, 40, 'middle'], hit: 80,
+      stars: [[-60, 6, 1.6], [-38, -6, 1.6], [-4, -12, 1.5], [2, -38, 2.4], [12, -10, 1.5], [34, -4, 1.5], [56, 0, 1.6], [74, -16, 1.8], [74, 14, 1.8], [56, 8, 1.3], [10, 16, 1.5], [-40, 14, 1.4], [-14, 6, 3.4], [-42, -1, 2.2], [-96, -34, 1.2, 'c'], [-108, -18, 1.2, 'c'], [-88, -14, 1.2, 'c']],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [6, 8], [6, 9], [9, 10], [10, 11], [11, 0]],
+      tag: 'Canon',
+      note: 'An orca outline with two bright patches that echo its glowing white markings. A faint pod of three small stars shows only when the haze is very thin, because most people only ever see one. Optional legend: the sea fills the crater of TeSharani and the Xatholun circles it.',
+      use: 'Marks the Xatheloru to the northeast, so a traveller lost in fog can find the sea.' },
+    { id: 'sobra', name: 'The Sobravrek', group: 'Beasts and the sea', gx: -0.55, gy: -0.5, anchor: 8, lab: [0, 52, 'middle'], hit: 82, boost: { cobalt: 1.5, other: 0.7 }, named: [{ idx: [6, 7], name: 'the Rivals' }], anchor2: [6, 7],
+      stars: [[-50, -12, 2.4], [-34, -6, 1.6], [-14, 0, 2.2], [30, 4, 2.0], [64, -10, 1.4], [-48, -22, 1.4], [-72, -42, 2.6], [-40, -48, 2.6], [-2, -50, 2.6], [36, -36, 1.6], [-18, 30, 1.5], [28, 32, 1.5]],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [5, 7], [2, 8], [8, 9], [9, 3], [2, 10], [3, 11]],
+      tag: 'Canon',
+      note: 'An antlered, winged wyrm. It brightens in the cobalt season and sits dim the rest of the year, because the Sobravrek is tied to Qoruvrak. Zamodes and Lamjamon are the only princes bonded to one. The two antler tips are named "the Rivals" and echo the bonded brothers, Zamodes and Lamjamon.',
+      use: 'Northwest, between the north and west gate bearings, over the volcanic edge.' },
+    { id: 'mira', name: 'The Miravun', group: 'Beasts and the sea', gx: 0.38, gy: 0.55, anchor: 6, lab: [0, 60, 'middle'], hit: 68,
+      stars: [[26, 0, 1.8], [13, 22, 1.8], [-13, 22, 1.8], [-26, 0, 1.8], [-13, -22, 1.8], [13, -22, 1.8], [0, 0, 2.6], [-48, -4, 2.0], [42, 6, 1.2], [-50, -42, 2.0], [46, -44, 2.0], [-32, 36, 1.4], [32, 36, 1.4]],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [3, 7], [0, 8], [4, 9], [5, 10], [2, 11], [1, 12]],
+      tag: 'Canon',
+      note: 'A shell of six stars with wings and a head: the flying turtle. It nests beneath the inverted mountains by the lakes and spends much of its life aloft.',
+      use: 'South, over the Vaethpojahi and the salt flats. It tells you the lakes are below.' },
+    { id: 'vrut', name: 'The Vrutolin', group: 'Beasts and the sea', gx: 0.5, gy: 0.3, anchor: 0, lab: [0, 44, 'middle'], hit: 66,
+      stars: fish, lines: [[0, 1], [1, 2], [2, 3], [3, 4], [3, 5], [3, 6], [6, 7], [7, 0]],
+      tag: 'Canon',
+      note: 'A salmon-like fish swimming toward the southern lakes. The Vrutolin runs upstream from the sea to spawn in the mountain lakes, so the figure swims against the current. A natural festival sign for Malovrathiel.',
+      use: 'Between the sea and the southern lakes, pointing at them.' },
+    { id: 'herald', name: 'The Herald', group: 'The dead', gx: -0.66, gy: 0.44, anchor: 7, lab: [8, 60, 'middle'], hit: 66, marks: [0, 1, 5, 6],
+      stars: [[0, -34, 2.8], [0, -20, 2.2], [-18, -4, 1.6], [22, -6, 1.8], [0, 10, 1.8], [-10, 38, 2.2], [10, 38, 2.2], [22, -64, 3.0], [22, 40, 1.5]],
+      lines: [[0, 1], [1, 2], [1, 3], [1, 4], [4, 5], [4, 6], [7, 3], [3, 8]],
+      tag: 'Canon, new character',
+      note: 'A gender-neutral Theraav, Lioshe\'s rank without Paev. They fought beside Lioshe and Sadok before the Fall and died as a Vatrajarə. Three rank marks: feet, back and eyes. Name not yet chosen.',
+      use: 'Southwest, south of the Dividers and overlapping the hanging spires. The long staff points up and slightly east, toward the Seat.' },
+    { id: 'guard', name: 'The Last Guard', group: 'The dead', gx: 0, gy: 0.42, anchor: 0, lab: [0, 64, 'middle'], hit: 72, marks: [0, 1, 7, 8, 9, 10],
+      stars: [[0, -32, 2.8], [0, -18, 2.2], [-54, -24, 1.8], [54, -24, 1.8], [-28, -20, 1.4], [28, -20, 1.4], [0, 10, 1.8], [-12, 40, 2.2], [12, 40, 2.2], [-9, -37, 1.2], [9, -37, 1.2]],
+      lines: [[0, 1], [1, 4], [4, 2], [1, 5], [5, 3], [1, 6], [6, 7], [6, 8]],
+      tag: 'Canon, new character',
+      note: 'Sadok\'s former bodyguard, male-leaning, an Ashraat (Sadok\'s rank without Paev). He died trying to stop the imprisonment. Four rank marks: feet, back, eyes and temples. He stands with arms spread, facing the prison. Name not yet chosen.',
+      use: 'South of the Seat, facing TeDrona. A warning more than a path.' },
+    { id: 'lamp', name: 'The Lamp', group: 'The common sign', gx: -0.42, gy: 0.15, anchor: 9, lab: [0, 52, 'middle'], hit: 52,
+      stars: [[0, -42, 1.6], [-14, -30, 1.4], [14, -30, 1.4], [-18, -16, 1.6], [18, -16, 1.6], [-24, 6, 1.6], [24, 6, 1.6], [-14, 30, 1.6], [14, 30, 1.6], [0, -2, 3.4]],
+      lines: [[1, 0], [0, 2], [3, 4], [3, 5], [4, 6], [5, 7], [6, 8], [7, 8]],
+      tag: 'Canon',
+      note: 'A hanging lantern with a bright flame star, shaped like a Xathaeli. People say the Lamp is lit when the band is near, which is the signal to set Xathaeli out to charge.',
+      use: 'Sits where the band passes often. It is the one figure whose design may change when it is actually designed.' },
+    { id: 'ring', name: 'The Ring (North)', short: 'Ring', group: 'Gate tokens', gx: 0, gy: -0.9, anchor: 0, lab: [0, 38, 'middle'], hit: 40,
+      stars: ring8, lines: closed(8),
+      tag: 'Canon',
+      note: 'Hashaeqa\'s sign at Naethvatael. She is possessive and proud, and sees herself as Sadok\'s true mate. An object, not a person.',
+      use: 'Marks the north bearing.' },
+    { id: 'boys', name: 'The Two Boys (East)', short: 'Two Boys', group: 'Gate tokens', gx: 0.9, gy: 0, anchor: 0, lab: [4, 38, 'middle'], hit: 40,
+      stars: [[-12, -14, 1.9], [-12, 2, 1.6], [-17, 18, 1.2], [-7, 18, 1.2], [12, -14, 1.9], [12, 2, 1.6], [7, 18, 1.2], [17, 18, 1.2]],
+      lines: [[0, 1], [1, 2], [1, 3], [4, 5], [5, 6], [5, 7], [1, 5]],
+      tag: 'Canon',
+      note: 'Naevoshi\'s sign at Haelvatael: two young boys, standing for her two sons as small children. She is patient and influences quietly. Her sons are Mamon and Zarazael. The Canon Ref lists which prince\'s territory a Jami lives under, not whose children are whose, so there is no conflict.',
+      use: 'Marks the east bearing.' },
+    { id: 'dagger', name: 'The Dagger (South)', short: 'Dagger', group: 'Gate tokens', gx: 0, gy: 0.9, anchor: 6, lab: [0, -48, 'middle'], hit: 44,
+      stars: [[0, 38, 2.0], [0, 24, 1.2], [-14, 12, 1.6], [0, 12, 1.8], [14, 12, 1.6], [0, -10, 1.6], [0, -34, 2.6]],
+      lines: [[0, 1], [1, 3], [2, 3], [3, 4], [3, 5], [5, 6]],
+      tag: 'Canon',
+      note: 'Pholaeth\'s sign at Taepvatael, the disciplinarian whose love shows as competence and survival. The tip points inward, toward the centre of the realm.',
+      use: 'Marks the south bearing.' },
+    { id: 'div', name: 'The Dividers (West)', short: 'Dividers', group: 'Gate tokens', gx: -0.9, gy: 0, anchor: 0, lab: [0, 48, 'middle'], hit: 44,
+      stars: [[0, -26, 2.2], [-15, 28, 1.8], [15, 28, 1.8], [-8, 4, 1.2], [8, 4, 1.2], [0, -36, 1.4]],
+      lines: [[5, 0], [0, 1], [0, 2], [3, 4]],
+      tag: 'Canon',
+      note: 'Zaelith\'s sign at Jaeshvatael: the drafting compass of a builder and engineer. It echoes the tool-named constellations Lacaille gave the southern sky.',
+      use: 'Marks the west bearing.' }
+  ];
+  var GROUPS = ['Court and capital', 'Beasts and the sea', 'The dead', 'The common sign', 'Gate tokens'];
+  var BYID = {}; FIGS.forEach(function (f) { BYID[f.id] = f; });
+
+  var st = { season: 0, period: 3, haze: 0.4, wander: 0, stall: false, look: true, sel: 'seat', hov: null,
+             layers: { band: true, haze: true, fig: true, lab: true, spires: true, comp: true } };
+  var $ = function (id) { return document.getElementById(id); };
+  var P = function (gx, gy) { return [CX + (st.look ? -gx : gx) * R, CY + gy * R]; };
+  var G = function (sx, sy) { return [(st.look ? -(sx - CX) : (sx - CX)) / R, (sy - CY) / R]; };
+
+  function hazeAt(gx, gy) {
+    var e = smooth(-0.2, 0.8, gx), s = smooth(0.1, 0.9, gy);
+    return clamp(0.35 + 0.55 * e - 0.45 * s, 0.05, 1) * st.haze * 1.15;
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+  function buildStatic() {
+    var h = '';
+    [0.28, 0.5, 0.72, 0.94].forEach(function (f, i) { h += '<circle class="ripple" cx="400" cy="400" r="' + (R * f).toFixed(1) + '"/>'; });
+    $('ripples').innerHTML = h;
+    var b = '';
+    SEASONS.forEach(function (s, i) {
+      b += '<button type="button" data-s="' + i + '" aria-pressed="false"><span class="sw" style="background:' + s.color + '"></span><span>' + s.casual + '</span></button>';
+    });
+    $('seasonBtns').innerHTML = b;
+    var g = '';
+    GROUPS.forEach(function (name) {
+      g += '<div class="group"><h3>' + name + '</h3>';
+      FIGS.filter(function (f) { return f.group === name; }).forEach(function (f) {
+        g += '<button type="button" class="rowbtn" data-f="' + f.id + '" aria-pressed="false"><span>' + f.name + '</span><span class="stat" id="st-' + f.id + '"></span></button>';
+      });
+      g += '</div>';
+    });
+    $('groups').innerHTML = g;
+  }
+
+  function render() {
+    var s = SEASONS[st.season];
+    var cobaltStall = st.stall && s.k === 'cobalt';
+    var th = s.head + st.wander, thr = th * Math.PI / 180;
+    var nx = -Math.sin(thr), ny = Math.cos(thr);
+    var d = (-1 + 2 * (st.period - 1) / 7) * R * 0.88;
+    var bandOn = st.layers.band;
+    var kAt = function (sx, sy) {
+      if (!bandOn) return 0;
+      var dist = Math.abs((sx - CX) * nx + (sy - CY) * ny - d);
+      return Math.exp(-Math.pow(dist / (s.w * 0.75), 2));
+    };
+
+    // dome darkness and ripples
+    $('darkOv').setAttribute('opacity', cobaltStall ? 0.55 : s.dark);
+    var violent = s.k === 'cobalt';
+    document.querySelectorAll('.ripple').forEach(function (c) {
+      c.style.setProperty('--bd', (violent ? (cobaltStall ? 1.8 : 2.6) : 9) + 's');
+      c.style.setProperty('--bs', violent ? 1.05 : 1.012);
+    });
+
+    // band
+    ['bs0', 'bs1', 'bs2'].forEach(function (id) { $(id).setAttribute('stop-color', s.color); });
+    var band = '';
+    if (bandOn) {
+      var lines = '';
+      for (var i = 0; i < 14; i++) {
+        var y = d + (i / 13 - 0.5) * s.w * 0.9;
+        var sw = (0.8 + ((i * 7) % 5) * 0.5).toFixed(1);
+        var op = ((0.1 + ((i * 5) % 7) / 7 * 0.3) * s.int).toFixed(2);
+        var da = (40 + (i * 13) % 90) + ' ' + (20 + (i * 29) % 60);
+        lines += '<line x1="-700" x2="700" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + s.color + '" stroke-width="' + sw + '" stroke-opacity="' + op + '" stroke-dasharray="' + da + '"/>';
+      }
+      var amp = cobaltStall ? 0 : s.amp;
+      band = '<g clip-path="url(#domeClip)"><g transform="translate(400 400) rotate(' + th.toFixed(1) + ')">' +
+        '<rect x="-700" y="' + (d - s.w / 2).toFixed(1) + '" width="1400" height="' + s.w + '" fill="url(#bandG)" filter="url(#soft)" opacity="' + s.int + '"/>' +
+        '<g class="sway" style="--amp:' + amp + 'px;--dur:' + s.dur + 's">' + lines + '</g></g></g>';
+    }
+    $('gBand').innerHTML = band;
+
+    // spires
+    var sp = '';
+    if (st.layers.spires) {
+      [[-0.5, 0.52], [-0.4, 0.6], [-0.58, 0.63]].forEach(function (q) {
+        var p = P(q[0], q[1]);
+        sp += '<polygon points="' + (p[0] - 5) + ',' + (p[1] - 14) + ' ' + (p[0] + 5) + ',' + (p[1] - 14) + ' ' + p[0] + ',' + (p[1] + 14) + '" fill="#05030a" stroke="#8d80b5" stroke-opacity=".5"/>';
+      });
+      var lp = P(-0.3, 0.8);
+      sp += '<text class="tiny" x="' + lp[0] + '" y="' + lp[1] + '" text-anchor="middle">hanging spires</text>';
+    }
+    $('gSpires').innerHTML = sp;
+
+    // haze
+    var hz = '';
+    if (st.layers.haze) {
+      [[0.55, -0.2, 0.5, 0.42, 1], [0.15, -0.62, 0.4, 0.25, 0.8], [0.62, 0.3, 0.32, 0.3, 0.8], [-0.05, -0.1, 0.28, 0.22, 0.5], [-0.55, -0.45, 0.28, 0.2, 0.45]].forEach(function (b) {
+        var p = P(b[0], b[1]);
+        hz += '<ellipse cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" rx="' + (b[2] * R).toFixed(1) + '" ry="' + (b[3] * R).toFixed(1) + '" fill="#d8cfee" opacity="' + (st.haze * 0.22 * b[4]).toFixed(3) + '" filter="url(#soft2)"/>';
+      });
+    }
+    if (st.layers.haze) {
+      // sobil drift trail: a faint streak from the spires toward the east, building as it goes
+      [[-0.5, 0.56, 0.12], [-0.34, 0.62, 0.3], [-0.12, 0.58, 0.5], [0.1, 0.5, 0.7], [0.32, 0.38, 0.9], [0.54, 0.22, 1], [0.72, 0.05, 1]].forEach(function (b) {
+        var p = P(b[0], b[1]);
+        hz += '<ellipse cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" rx="' + (0.17 * R).toFixed(1) + '" ry="' + (0.07 * R).toFixed(1) + '" fill="#e6dcff" opacity="' + (st.haze * 0.2 * b[2]).toFixed(3) + '" filter="url(#soft2)"/>';
+      });
+    }
+    $('gHaze').innerHTML = hz;
+
+    // figures
+    var fh = '', gl = '', centers = [];
+    FIGS.forEach(function (f) {
+      var c = P(f.gx, f.gy); centers.push({ f: f, c: c });
+      var boost = 1;
+      if (f.boost) boost = (s.k === 'cobalt') ? f.boost.cobalt : f.boost.other;
+      var ops = [], pts = [], vis = 0, total = 0;
+      f.stars.forEach(function (q) {
+        var sx = c[0] + q[0], sy = c[1] + q[1];
+        var g = G(sx, sy);
+        var k = kAt(sx, sy);
+        var base = (0.92 - (cobaltStall ? 0.55 : s.dark) * 0.9) * boost;
+        var v = 1 - clamp(hazeAt(g[0], g[1]) * 1.1, 0, 0.95);
+        var op = clamp(base * (0.65 + 0.6 * k) * v, 0.04, 1);
+        if (q[3] === 'c' && st.haze >= 0.3) op = 0;
+        if (q[3] !== 'c' || st.haze < 0.3) total += 1;
+        if (op > 0.2) vis += 1;
+        ops.push(op); pts.push([sx, sy, k * v]);
+        if (k > 0.15 && op > 0) gl += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + (q[2] * 4.5).toFixed(1) + '" fill="' + s.color + '" opacity="' + (k * 0.55 * v).toFixed(2) + '"/>';
+      });
+      f._vis = vis; f._total = total;
+      f._status = vis === 0 ? 'hidden' : (vis >= total ? 'whole' : 'partial');
+      f._ops = ops;
+      if (!st.layers.fig) return;
+      var on = (st.hov || st.sel) === f.id;
+      var o = '<g class="fig' + (on ? ' on' : '') + '" data-f="' + f.id + '" tabindex="0" role="button" aria-label="' + esc(f.name + ', ' + f._status) + '">';
+      o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + f.hit + '" fill="transparent"/>';
+      if (f.dark) o += '<polygon points="' + f.dark.map(function (i) { return pts[i][0].toFixed(1) + ',' + pts[i][1].toFixed(1); }).join(' ') + '" fill="#03020a" fill-opacity=".88" stroke="#8d80b5" stroke-opacity=".4" stroke-linejoin="round"/>';
+      f.lines.forEach(function (l) {
+        var lo = Math.min(ops[l[0]], ops[l[1]]) * 0.55;
+        if (lo < 0.03) return;
+        o += '<line class="fl" x1="' + pts[l[0]][0].toFixed(1) + '" y1="' + pts[l[0]][1].toFixed(1) + '" x2="' + pts[l[1]][0].toFixed(1) + '" y2="' + pts[l[1]][1].toFixed(1) + '" stroke-opacity="' + lo.toFixed(2) + '"/>';
+      });
+      if (f.absence) o += '<circle cx="' + (c[0] + f.absence[0]) + '" cy="' + (c[1] + f.absence[1]) + '" r="9" fill="none" stroke="#e9c46a" stroke-opacity="' + Math.min(0.8, ops[0] + 0.15).toFixed(2) + '" stroke-dasharray="3 3"/>';
+      f.stars.forEach(function (q, i) {
+        if (ops[i] <= 0) return;
+        var isMark = f.marks && f.marks.indexOf(i) >= 0;
+        o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + (isMark ? 0.7 : 0)) + '" fill="' + (isMark ? '#ffb938' : '#f6f0dc') + '" opacity="' + (ops[i] * (f.dark ? 0.55 : 1)).toFixed(2) + '"/>';
+        if (f.anchor2 && f.anchor2.indexOf(i) >= 0) o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + 3) + '" fill="none" stroke="#e9c46a" stroke-width="1" stroke-dasharray="2 2" opacity="' + Math.min(1, ops[i] + 0.1).toFixed(2) + '"/>';
+        if (i === f.anchor) o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + 4) + '" fill="none" stroke="#e9c46a" stroke-width="1" opacity="' + Math.min(1, ops[i] + 0.1).toFixed(2) + '"/>';
+      });
+      if (f.named && st.layers.lab) f.named.forEach(function (nm) {
+        var a = pts[nm.idx[0]], b = pts[nm.idx[1]];
+        o += '<text class="tiny" x="' + ((a[0] + b[0]) / 2).toFixed(1) + '" y="' + (Math.min(a[1], b[1]) - 12).toFixed(1) + '" text-anchor="middle" opacity="' + Math.min(ops[nm.idx[0]], ops[nm.idx[1]]).toFixed(2) + '">' + esc(nm.name) + '</text>';
+      });
+      if (st.layers.lab) o += '<text x="' + (c[0] + f.lab[0]).toFixed(1) + '" y="' + (c[1] + f.lab[1]).toFixed(1) + '" text-anchor="' + f.lab[2] + '" opacity="' + (f._status === 'hidden' ? 0.35 : 1) + '">' + esc(f.short || f.name) + '</text>';
+      o += '</g>';
+      fh += o;
+    });
+    $('gGlow').innerHTML = gl;
+    $('gFig').innerHTML = fh;
+
+    // compass
+    var cp = '';
+    if (st.layers.comp) {
+      var E = st.look ? -1 : 1;
+      var lbl = [['Naeth · N', 0, -1], ['Hael · E', E, 0], ['Taep · S', 0, 1], ['Jaesh · W', -E, 0]];
+      lbl.forEach(function (l) {
+        var x = CX + l[1] * (R + (l[1] ? 16 : 28)), y = CY + l[2] * (R + 28) + 4;
+        cp += '<text class="compass" x="' + x + '" y="' + y + '" text-anchor="' + (l[1] > 0 ? 'start' : (l[1] < 0 ? 'end' : 'middle')) + '">' + l[0] + '</text>';
+      });
+      for (var a = 0; a < 8; a++) {
+        var ar = a * Math.PI / 4;
+        cp += '<line x1="' + (CX + Math.cos(ar) * (R - 6)) + '" y1="' + (CY + Math.sin(ar) * (R - 6)) + '" x2="' + (CX + Math.cos(ar) * (R + 8)) + '" y2="' + (CY + Math.sin(ar) * (R + 8)) + '" stroke="#7d6fa8" stroke-opacity=".7"/>';
+      }
+    }
+    $('gComp').innerHTML = cp;
+
+    // which figure the band is over
+    var over = null, best = 1e9;
+    if (bandOn) centers.forEach(function (o) {
+      var dist = Math.abs((o.c[0] - CX) * nx + (o.c[1] - CY) * ny - d);
+      if (dist < best) { best = dist; over = o.f; }
+    });
+    var overTxt = (over && best < s.w * 0.7) ? 'The band is over <b>' + esc(over.name) + '</b>.' : 'The band is over open sky.';
+    var stallNote = cobaltStall ? ' The band has stalled and the rest of the sky is dark.' : '';
+    $('status').innerHTML = '<b>' + s.name + '</b> (' + s.casual + ' / ' + s.formal + '), period ' + st.period + ' of 8. ' + s.note + ' <span class="tag">' + s.tag + '</span> ' + overTxt + stallNote;
+
+    // controls state
+    document.querySelectorAll('#seasonBtns button').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.dataset.s === st.season)); });
+    $('periodOut').textContent = st.period + ' of 8';
+    $('hazeOut').textContent = st.haze < 0.2 ? 'thin' : st.haze < 0.45 ? 'light' : st.haze < 0.7 ? 'medium' : 'thick';
+    $('stall').disabled = s.k !== 'cobalt';
+    $('stallWrap').setAttribute('aria-disabled', String(s.k !== 'cobalt'));
+    $('cap').textContent = st.look
+      ? 'Chart as seen looking up from the ground, so east is on the left. The centre is the zenith above Xathqaelsel and the rim is the outer edge of the realm at the four gates.'
+      : 'Chart laid over the ground map, so east is on the right. Real skies look mirrored from below; this view is for matching positions to the ground map.';
+
+    // list + readout
+    FIGS.forEach(function (f) {
+      var e = $('st-' + f.id);
+      e.className = 'stat ' + f._status;
+      e.textContent = f._status === 'whole' ? 'whole' : f._status === 'hidden' ? 'hidden' : 'partial ' + f._vis + ' of ' + f._total;
+    });
+    document.querySelectorAll('.rowbtn').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.f === st.sel)); });
+    showReadout(st.hov || st.sel);
+  }
+
+  function showReadout(id) {
+    var f = BYID[id]; if (!f) return;
+    var cls = /^Proposed/.test(f.tag) ? 'chip prop' : 'chip';
+    var h = '<h3>' + f.name + '</h3><div class="chips"><span class="chip">' + f.group + '</span><span class="' + cls + '">' + f.tag + '</span></div>';
+    h += '<p>' + esc(f.note) + '</p><dl>';
+    h += '<dt>Use</dt><dd>' + esc(f.use) + '</dd>';
+    h += '<dt>Visible now</dt><dd>' + (f._status === 'hidden' ? 'Hidden by haze or dark' : f._vis + ' of ' + f._total + ' stars (' + f._status + ')') + '</dd>';
+    h += '<dt>Anchor</dt><dd>The gold-ringed star' + (f.anchor != null && f._ops && f._ops[f.anchor] > 0.2 ? ' is showing.' : ' is not showing right now.') + (f.anchor2 ? ' The dashed-ring pair, the Rivals, is a second anchor and ' + (f._ops && f._ops[f.anchor2[0]] > 0.2 && f._ops[f.anchor2[1]] > 0.2 ? 'both stars are showing.' : 'is not fully showing right now.') : '') + '</dd>';
+    h += '<dt>Names</dt><dd>Vatraxu, court and folk names are open.</dd></dl>';
+    $('readout').innerHTML = h;
+  }
+
+  // events
+  $('seasonBtns').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    st.season = +b.dataset.s; st.wander = 0; if (SEASONS[st.season].k !== 'cobalt') { st.stall = false; $('stall').checked = false; }
+    render();
+  });
+  $('period').addEventListener('input', function (e) { st.period = +e.target.value; render(); });
+  $('haze').addEventListener('input', function (e) { st.haze = +e.target.value / 100; render(); });
+  $('wander').addEventListener('click', function () { st.wander += (Math.random() < 0.5 ? -1 : 1) * (25 + Math.random() * 35); render(); });
+  $('resetHead').addEventListener('click', function () { st.wander = 0; render(); });
+  $('stall').addEventListener('change', function (e) { st.stall = e.target.checked; render(); });
+  $('look').addEventListener('change', function (e) { st.look = e.target.checked; render(); });
+  document.querySelectorAll('[data-layer]').forEach(function (c) {
+    c.addEventListener('change', function () { st.layers[c.dataset.layer] = c.checked; render(); });
+  });
+  $('groups').addEventListener('click', function (e) {
+    var b = e.target.closest('.rowbtn'); if (!b) return; st.sel = b.dataset.f; render();
+  });
+  var sky = $('sky');
+  sky.addEventListener('click', function (e) { var g = e.target.closest('.fig'); if (g) { st.sel = g.dataset.f; render(); } });
+  sky.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var g = e.target.closest('.fig'); if (g) { e.preventDefault(); st.sel = g.dataset.f; render(); var n = sky.querySelector('.fig[data-f="' + st.sel + '"]'); if (n) n.focus(); }
+  });
+  sky.addEventListener('mouseover', function (e) {
+    var g = e.target.closest('.fig'); var id = g ? g.dataset.f : null;
+    if (id !== st.hov) { st.hov = id; if (id) { showReadout(id); document.querySelectorAll('.fig').forEach(function (n) { n.classList.toggle('on', n.dataset.f === id); }); } }
+  });
+  sky.addEventListener('mouseleave', function () {
+    st.hov = null; showReadout(st.sel);
+    document.querySelectorAll('.fig').forEach(function (n) { n.classList.toggle('on', n.dataset.f === st.sel); });
+  });
+
+  buildStatic();
+  render();
+})();
+</script>

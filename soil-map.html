@@ -70,10 +70,14 @@ g.region:hover, g.region:focus, g.region.on { stroke: none; filter: brightness(1
 .notes h2 { font-family: var(--f-display); font-size: 17px; margin: 0 0 6px; }
 .notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 @media (max-width: 520px) { .readout { flex-direction: column; } }
+
+.back-link{display:inline-block;font-size:14px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+.back-link:hover,.back-link:focus-visible{text-decoration:underline;color:var(--accent)}
 </style>
 
 <main>
   <header>
+    <a class="back-link" href="index.html">&larr; All maps</a>
     <span class="status">Map v3 · soils and positions confirmed</span>
     <h1>Ishphaeno Soil Map</h1>
     <p class="sub">What the ground is made of, with the water, shores, forest edges and floating things laid over it. Hover or tap anything on the map, or a line in the key, to read it.</p>

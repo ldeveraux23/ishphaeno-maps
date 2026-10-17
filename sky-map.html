@@ -116,10 +116,14 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .5; } 50% { transform: scale(var(--bs)); opacity: 1; } }
 .ripple { transform-box: fill-box; transform-origin: center; animation: breathe var(--bd) ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .sway, .ripple { animation: none; } }
+
+.back-link{display:inline-block;font-size:14px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+.back-link:hover,.back-link:focus-visible{text-decoration:underline;color:var(--accent)}
 </style>
 
 <div class="wrap">
   <header>
+    <a class="back-link" href="index.html">&larr; All maps</a>
     <h1>Ishphaeno Sky Map</h1>
     <p class="lede">The membrane seen from the ground, with the Toluqavel band, the haze and the Velqael. Change the season, the hour and the haze to see which figures you can read.</p>
   </header>

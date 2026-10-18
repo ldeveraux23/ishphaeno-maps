@@ -1,11 +1,17 @@
-# Ishphaeno Maps
+# The Sekh Universe almanac (demo)
 
-Interactive maps for Ishphaeno, the Infernal realm of the Sekh Universe, by E.N. Sinclair.
+Static HTML. No build step is needed to view it.
 
-- `index.html`: landing page
-- `sky-map.html`: the sky (constellations, seasonal bands, haze, anchor stars)
-- `soil-map.html`: the ground (soils, cities, lakes, gates, Jamija houses, death lake)
+## Upload to GitHub Pages
+1. Unzip this folder.
+2. In your repo choose Add file > Upload files.
+3. Drag in everything inside the folder (all the .html files, site.css and the img folder), not the folder itself.
+4. Commit directly to the main branch. Existing files with the same names are replaced.
 
-Each map is one self-contained HTML file. Fonts load from Google Fonts and fall back to system fonts offline.
-
-All rights reserved. © E.N. Sinclair. The Sekh Universe, its characters, languages and worlds are original works. Please do not copy or reuse them without permission.
+## Layout
+- index.html: home, with the four realm doors (Ishphaeno, Kanna, Earth, Aempaera) and "Across the realms".
+- ishphaeno.html and its pages: maps, living things, stubs.
+- kanna.html and kanna-*.html: the map, the Hvan system, the Calamity, the Vorfae, biology, and the four peoples.
+- languages.html: the Stamfaen family.
+- earth.html and aempaera.html: coming-soon stubs.
+- sky-map.html and soil-map.html: the interactive Ishphaeno maps.

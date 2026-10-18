@@ -79,3 +79,11 @@ footer.site{margin-top:48px;font-size:13px;color:var(--muted)}
   dl.facts{grid-template-columns:100px 1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+.tw{overflow-x:auto;margin:0 0 18px}
+.tw table.t{min-width:520px}
+.mapfig{margin:0 0 24px}
+.mapfig img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#0f2233}
+.mapfig figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.swatch{display:inline-block;width:64px;height:12px;border-radius:6px;vertical-align:middle;margin-right:6px;border:1px solid var(--line)}
+nav.side li li li a{font-size:13.5px}
+.tw table.t.wide{min-width:820px}

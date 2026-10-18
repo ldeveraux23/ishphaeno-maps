@@ -115,7 +115,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .sway { animation: sway var(--dur) ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .5; } 50% { transform: scale(var(--bs)); opacity: 1; } }
 .ripple { transform-box: fill-box; transform-origin: center; animation: breathe var(--bd) ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .sway, .ripple { animation: none; } }
+@keyframes twinkle { 0%, 100% { opacity: calc(var(--o) * 0.3); } 50% { opacity: var(--o); } }
+.tip { animation: twinkle 3.6s ease-in-out infinite; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .sway, .ripple, .tip { animation: none; } }
 
 .back-link{display:inline-block;font-size:14px;color:var(--muted);text-decoration:none;margin-bottom:6px}
 .back-link:hover,.back-link:focus-visible{text-decoration:underline;color:var(--accent)}
@@ -318,12 +320,13 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       tag: 'Canon, new character',
       note: 'Sadok\'s former bodyguard, male-leaning, an Ashraat (Sadok\'s rank without Paev). He died trying to stop the imprisonment. Four rank marks: feet, back, eyes and temples. He stands with arms spread, facing the prison. Name not yet chosen.',
       use: 'South of the Seat, facing TeDrona. A warning more than a path.' },
-    { id: 'lamp', name: 'The Lamp', group: 'The common sign', gx: -0.42, gy: 0.15, anchor: 9, lab: [0, 52, 'middle'], hit: 52,
-      stars: [[0, -42, 1.6], [-14, -30, 1.4], [14, -30, 1.4], [-18, -16, 1.6], [18, -16, 1.6], [-24, 6, 1.6], [24, 6, 1.6], [-14, 30, 1.6], [14, 30, 1.6], [0, -2, 3.4]],
-      lines: [[1, 0], [0, 2], [3, 4], [3, 5], [4, 6], [5, 7], [6, 8], [7, 8]],
+    { id: 'lamp', name: 'The Lamp', group: 'The common sign', gx: -0.42, gy: 0.15, anchor: 0, lab: [0, 40, 'middle'], hit: 56,
+      pulse: [1, 2, 3, 4, 5],
+      stars: [[0, -8, 3.4], [-36, -30, 1.6], [-18, -46, 1.6], [0, -52, 1.7], [18, -46, 1.6], [36, -30, 1.6], [-22, -17, 1], [-12, -27, 1], [0, -30, 1], [12, -27, 1], [22, -17, 1], [-30, 8, 1.2], [0, 16, 1.2], [30, 8, 1.2]],
+      lines: [[0, 6], [6, 1], [0, 7], [7, 2], [0, 8], [8, 3], [0, 9], [9, 4], [0, 10], [10, 5], [11, 12], [12, 13], [0, 12]],
       tag: 'Canon',
-      note: 'A hanging lantern with a bright flame star, shaped like a Xathaeli. People say the Lamp is lit when the band is near, which is the signal to set Xathaeli out to charge.',
-      use: 'Sits where the band passes often. It is the one figure whose design may change when it is actually designed.' },
+      note: 'A Xathaeli in its stone bowl: a bright core star, five arms ending in glowing tips, and a shallow bowl below. People call it the Lamp because it glows. The tips pulse, and pulse brighter and faster when the band is near, the signal to set Xathaeli out to charge.',
+      use: 'Sits where the band passes often. The pulse on its tips is the charge cue.' },
     { id: 'ring', name: 'The Ring (North)', short: 'Ring', group: 'Gate tokens', gx: 0, gy: -0.9, anchor: 0, lab: [0, 38, 'middle'], hit: 40,
       stars: ring8, lines: closed(8),
       tag: 'Canon',
@@ -490,6 +493,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
         if (ops[i] <= 0) return;
         var isMark = f.marks && f.marks.indexOf(i) >= 0;
         o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + (isMark ? 0.7 : 0)) + '" fill="' + (isMark ? '#ffb938' : '#f6f0dc') + '" opacity="' + (ops[i] * (f.dark ? 0.55 : 1)).toFixed(2) + '"/>';
+        if (f.pulse && f.pulse.indexOf(i) >= 0) {
+          var kc = clamp(pts[0][2] + 0.0, 0, 1), pk = clamp(ops[i] * (0.3 + 0.7 * kc), 0, 1);
+          o += '<circle class="tip" cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + 3.2 + 2.2 * kc).toFixed(1) + '" fill="#ffd27a" opacity="' + pk.toFixed(2) + '" style="--o:' + pk.toFixed(2) + ';animation-duration:' + (4.2 - 2.4 * kc).toFixed(2) + 's;animation-delay:-' + (i * 0.7).toFixed(1) + 's"/>';
+        }
         if (f.anchor2 && f.anchor2.indexOf(i) >= 0) o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + 3) + '" fill="none" stroke="#e9c46a" stroke-width="1" stroke-dasharray="2 2" opacity="' + Math.min(1, ops[i] + 0.1).toFixed(2) + '"/>';
         if (i === f.anchor) o += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="' + (q[2] + 4) + '" fill="none" stroke="#e9c46a" stroke-width="1" opacity="' + Math.min(1, ops[i] + 0.1).toFixed(2) + '"/>';
       });

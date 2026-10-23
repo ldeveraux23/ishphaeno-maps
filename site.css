@@ -99,3 +99,14 @@ nav.side li li li a{font-size:13.5px}
 .gal.big{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));margin:0 0 22px}
 .gal figcaption{font-size:13px;color:var(--muted);margin-top:6px}
 .gal figure img{border-radius:12px;border:1px solid var(--line)}
+.logos{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 22px}
+.logofig{margin:0;width:200px}
+.logofig img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#111}
+.logofig figcaption,.tallfig figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.tallfig{margin:0 0 22px;max-width:320px}
+.tallfig img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+.song{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+.song h3{margin:0 0 4px}
+.song audio{width:100%;margin-top:8px}
+@media(max-width:520px){.logofig{width:calc(50% - 8px)}}
+.logofig.big{width:calc(50% - 8px);max-width:320px}

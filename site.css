@@ -17,7 +17,7 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
 .shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
 nav.side{border-right:1px solid var(--line);padding:24px 18px;position:sticky;top:0;align-self:start;height:100vh;overflow:auto;background:var(--panel)}
 nav.side .brand{font-family:var(--display);font-size:22px;line-height:1.1;text-decoration:none;color:var(--ink);display:block;margin-bottom:4px}
-nav.side .by{font-size:13px;color:var(--muted);margin-bottom:22px}
+nav.side .by{font-size:13px;color:var(--muted);margin-bottom:14px}
 nav.side details>summary{display:none}
 nav.side ol{list-style:none;margin:0;padding:0}
 nav.side li a{display:block;padding:7px 10px;border-radius:8px;text-decoration:none;color:var(--ink);font-size:15px}
@@ -110,3 +110,19 @@ nav.side li li li a{font-size:13.5px}
 .song audio{width:100%;margin-top:8px}
 @media(max-width:520px){.logofig{width:calc(50% - 8px)}}
 .logofig.big{width:calc(50% - 8px);max-width:320px}
+
+/* search */
+.sbox{margin:0 0 16px;position:relative}
+.sbox input{width:100%;font:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.sbox input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#res{display:none;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);max-height:60vh;overflow:auto}
+#res.on{display:block}
+#res a{display:block;padding:9px 12px;text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line)}
+#res a:last-child{border-bottom:0}
+#res a:hover,#res a.sel{background:var(--accent-soft)}
+#res b{display:block;font-family:var(--display);font-weight:400;font-size:16px}
+#res span{display:block;font-size:13px;color:var(--muted);line-height:1.4}
+#res mark{background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:0 1px}
+#res .none{padding:10px 12px;font-size:14px;color:var(--muted)}
+@media (min-width:861px){#res{position:absolute;left:0;right:-40px;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.18)}}
+@media (max-width:860px){nav.side .by{margin-bottom:10px}.sbox{margin-bottom:10px}}

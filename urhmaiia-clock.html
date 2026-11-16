@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The float clock | Sekh Universe Almanac</title><meta name="description" content="The Urhmaiia float clock, its crews and its call words.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css"></head><body>
+<div class="shell"><nav class="side" aria-label="Site"><a class="brand" href="index.html">The Sekh Universe</a><div class="by">An almanac by E.N. Sinclair</div><div class="sbox"><input id="q" type="search" placeholder="Search the almanac" autocomplete="off" aria-label="Search the almanac"><div id="res" role="listbox"></div></div><details id="menu" open><summary>Menu</summary><ol><li><a href="index.html">Home</a></li><li><a href="ishphaeno.html">Ishphaeno</a></li><li><a href="kanna.html">Kanna</a></li><li><a href="earth.html">Earth</a><ol><li><a href="earth-sekh.html">The Sekh</a></li><li><a href="earth-faith.html">Nẹránamün</a></li><li><a href="earth-ash.html">The House of Ash</a></li><li><a href="earth-anu.html">The Anu</a></li><li><a href="earth-witches.html">The Witches of Mephis</a></li><li><a href="earth-lamiae.html">The Lamiae</a></li><li><a href="earth-nok.html">The Nok</a></li><li><a href="earth-emsehurst.html">Emsehurst</a></li><li><a href="urhmaiia.html">Urhmaiia</a><ol><li><a href="urhmaiia-castes.html">Castes and bodies</a></li><li><a href="urhmaiia-look.html">Appearance and dress</a></li><li><a href="urhmaiia-life.html">Birth, change and death</a></li><li><a href="urhmaiia-food.html">Food and craft</a></li><li><a href="urhmaiia-fauna.html">Creatures and plants</a></li><li><a href="urhmaiia-places.html">Cities and the deep</a></li><li><a href="urhmaiia-faith.html">Gods and faith</a></li><li><a href="urhmaiia-language.html">Language and time</a></li><li><a href="urhmaiia-clock.html" aria-current="page">The float clock</a></li></ol></li></ol></li><li><a href="aempaera.html">Aempaera</a></li><li><a href="realms.html">Across the realms</a></li></ol></details></nav><script>if(window.matchMedia("(max-width:860px)").matches){var d=document.getElementById("menu");if(d)d.removeAttribute("open")}</script><main><div class="crumbs"><a href="index.html">Home</a> / <a href="earth.html">Earth</a> / <a href="urhmaiia.html">Urhmaiia</a> / The float clock</div><h1>The float clock</h1><p class="lede">A tower that sings the hour into the water, and the two crews who keep it in step with a sun nobody below can see.</p><p class="note">Lines without a tag are settled canon from the Urhmaiia Canon Reference. Tags mark anything less settled. Terms are given in the keyboard romanisation, with the uvular letter written rh.</p><h2>What it is</h2><p>A float clock is the sound-keeping city clock that stands in the water. The tower crew turns it over and sings the hour in Haulorai, the way bells or calls to prayer carry the hour on land. Listeners read it on a cuff, a tuned reed that receives the call. The hour is told in the number of phrases sung. The tower is the <i>Orhdutira</i> and its crew is the <i>Orhdutirii</i>. <span class="st decided">Decided</span></p><p>The time it keeps is the native ocean time, the Aldisha, Orhdu, Jorhdu and Kirhdu of <a href="realms-calendars.html">Calendars</a>. Each Aldisha is divided into four watches of six Orhdu, one in the day and three in the night, and each watch is an <i>Orhdulekha</i>. <span class="st decided">Decided</span></p><h2>Watch it run</h2><p>A tall tube of glass sponge holds fluid, and a float rises through it at a steady speed. When it reaches the top, the crew flips the tube, the float starts again from the bottom, and the hour is called. One run is one Aldisha of 24 Orhdu. Thicker fluid slows the float and more lift speeds it, so the keepers tune the two against each other until a run takes exactly 24 Orhdu. Native time is the main reading. The surface hours and the sun clock are only outside references, and the two clocks line up again every two Aldisha. The sound buttons play the keynote, the city motif and the watch marker described below.</p><style>
+.fc{--surface-1:var(--chip);--surface-2:var(--panel);--border-strong:var(--line);--border-stronger:var(--muted);--bg-accent:var(--accent-soft);--border-accent:var(--accent);--bg-warning:#f2d6a0;--border-warning:var(--proposed);--text-success:var(--canon);--text-danger:#b3402f;--text-info:var(--decided);--text-warning:var(--proposed);--text-primary:var(--ink);--text-secondary:var(--muted);--text-tertiary:var(--muted);margin:14px 0}
+@media (prefers-color-scheme:dark){.fc{--bg-warning:#5a4320;--text-danger:#e58a7c}}
+.fc .ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 24px;margin:0 0 12px}
+.fc .ctl div{display:flex;align-items:center;gap:10px}
+.fc label{font-size:14px;color:var(--muted);min-width:98px}
+.fc input[type=range]{flex:1;accent-color:var(--accent)}
+.fc .out{font-size:14px;font-weight:600;min-width:28px;text-align:right}
+.fc .btns{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;align-items:center}
+.fc button{font:inherit;font-size:14px;padding:6px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer}
+.fc button:hover{border-color:var(--accent)}
+.fc button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fc .mute{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);min-width:0}
+.fc .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:0 0 8px}
+.fc .cd{background:var(--chip);border-radius:10px;padding:.75rem 1rem}
+.fc .cd .k{font-size:13px;color:var(--muted)}
+.fc .cd .v{font-size:18px;font-weight:600}
+.fc .cd .v2{font-size:14px}
+.fc .cd .n{font-size:13px;color:var(--muted)}
+.fc svg{display:block;width:100%}
+</style><div class="fc" id="fc">
+<div class="ctl"><div><label for="visc">Fluid thickness</label><input type="range" id="visc" min="20" max="100" step="1" value="50"><span class="out" id="viscOut">50</span></div>
+<div><label for="lift">Float lift</label><input type="range" id="lift" min="20" max="100" step="1" value="50"><span class="out" id="liftOut">50</span></div></div>
+<div class="btns"><button id="btnRun" type="button">Pause</button><button id="btnFlip" type="button">Flip tube</button><button id="btnTune" type="button">Tune to 24</button><button id="btnSpeed" type="button">Speed 1x</button><button id="btnCall" type="button">Play the call</button><button id="btnMark" type="button">Play watch marker</button><label class="mute"><input type="checkbox" id="under"> Underwater muffle</label></div>
+<div class="cards">
+<div class="cd"><div class="k">Native time (Aldisha)</div><div class="v" id="nowTxt">Orhdu 1 of 24</div><div class="v2" id="fineTxt">Jorhdu 0 · Kirhdu 0</div><div class="n" id="watchTxt">Orhduilun, Night 1 watch</div></div>
+<div class="cd"><div class="k">Call to sing</div><div class="v" id="callTxt">1 phrase</div><div class="n" id="alignTxt">Aldisha 1 of 2 before clocks align</div></div>
+<div class="cd"><div class="k">Tuning</div><div class="v" id="tuneTxt">24.0 Orhdu per run</div><div class="n" id="tuneNote">On target</div></div>
+<div class="cd"><div class="k">Outside reference: surface</div><div class="v" id="hrTxt" style="font-size:16px">Hour 0 to 1.5 of 36</div><div class="n">Jorhdu is about 3.2 minutes, Kirhdu about 6.9 seconds</div></div>
+<div class="cd"><div class="k">Outside reference: sun clock</div><div class="v" id="sunTxt" style="font-size:16px">Sun-day 1, Orhdu 1 of 16</div><div class="n" id="sunNote">Sun watch 1 of 4</div></div>
+</div>
+<svg viewBox="0 0 680 430" role="img" aria-label="Float clock tower in native time"><title>Float clock tower in native time</title><desc>A tall upright glass sponge tube with a float rising past 24 Orhdu notches. The first 18 are the night period Orhduilun in three watches of six, the last 6 are the day period Orhduaragi. A faint surface hours scale sits on the left and a dashed line at Orhdu 16 marks the end of a 24 hour sun-day.</desc>
+<defs><pattern id="lat" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0 L12 12 M12 0 L0 12" style="stroke:var(--border-strong);stroke-width:0.8;fill:none"/></pattern></defs>
+<rect x="254" y="220" width="12" height="190" style="fill:var(--border-strong)"/><rect x="214" y="410" width="92" height="8" rx="2" style="fill:var(--border-strong)"/>
+<g id="grp"><rect x="224" y="44" width="72" height="352" rx="6" style="fill:var(--surface-1);stroke:var(--border-strong);stroke-width:1"/><rect x="224" y="44" width="72" height="352" rx="6" style="fill:url(#lat);stroke:none"/><rect x="234" y="52" width="52" height="336" style="fill:var(--bg-accent);stroke:var(--border-accent);stroke-width:.5"/><rect x="232" y="44" width="56" height="8" rx="2" style="fill:var(--border-stronger)"/><rect x="232" y="388" width="56" height="8" rx="2" style="fill:var(--border-stronger)"/>
+<line id="pushL" x1="244" y1="380" x2="244" y2="350" style="stroke:var(--text-success);stroke-width:3;stroke-linecap:round"/><polygon id="pushH" points="0,0 0,0 0,0" style="fill:var(--text-success)"/><line id="dragL" x1="276" y1="380" x2="276" y2="400" style="stroke:var(--text-danger);stroke-width:3;stroke-linecap:round"/><polygon id="dragH" points="0,0 0,0 0,0" style="fill:var(--text-danger)"/><ellipse id="flt" cx="260" cy="379" rx="20" ry="9" style="fill:var(--bg-warning);stroke:var(--border-warning);stroke-width:1"/></g>
+<circle cx="260" cy="220" r="6" style="fill:var(--surface-2);stroke:var(--border-stronger);stroke-width:1"/>
+<line x1="296" y1="164" x2="440" y2="164" style="stroke:var(--text-info);stroke-width:1;stroke-dasharray:4 3"/><text x="332" y="158" style="font-size:12px;fill:var(--text-info)">24 h sun-day ends</text>
+<line x1="470" y1="388" x2="470" y2="136" style="stroke:var(--border-stronger);stroke-width:2"/><line x1="470" y1="136" x2="470" y2="52" style="stroke:var(--text-warning);stroke-width:2"/>
+<text x="482" y="266" style="font-size:13px;fill:var(--text-primary)">Orhduilun</text><text x="482" y="283" style="font-size:12px;fill:var(--text-secondary)">night, 18 Orhdusha</text><text x="482" y="94" style="font-size:13px;fill:var(--text-primary)">Orhduaragi</text><text x="482" y="111" style="font-size:12px;fill:var(--text-secondary)">day, 6 Orhdusha</text>
+<g id="ticks"></g><g id="labels"></g>
+<text x="214" y="38" text-anchor="end" style="font-size:12px;fill:var(--text-secondary)">Orhdu</text><text x="162" y="38" text-anchor="end" style="font-size:12px;fill:var(--text-tertiary)">Surface h</text>
+<text x="500" y="350" style="font-size:12px;fill:var(--text-success)">push up (float lift)</text><text x="500" y="370" style="font-size:12px;fill:var(--text-danger)">drag down (thick fluid)</text><text x="500" y="390" style="font-size:12px;fill:var(--text-secondary)">balance = steady speed</text></svg>
+</div><script>
+(function(){
+var NS='http://www.w3.org/2000/svg',L=336,BOT=388,CX=260,CY=220;
+var names=['Night 1','Night 2','Night 3','Day'];
+var ticks=document.getElementById('ticks'),labels=document.getElementById('labels');
+var i,el,y;
+function mk(t,at){var e=document.createElementNS(NS,t);for(var k in at)e.setAttribute(k,at[k]);return e;}
+for(i=0;i<=24;i++){
+ y=BOT-i*L/24; var major=(i%6===0);
+ ticks.appendChild(mk('line',{x1:302,x2:major?324:310,y1:y,y2:y,style:'stroke:var(--border-stronger);stroke-width:'+(major?1.5:0.8)}));
+ if(major){el=mk('text',{x:214,y:y+4,'text-anchor':'end',style:'font-size:12px;fill:var(--text-secondary)'});el.textContent=String(i);labels.appendChild(el);}
+ if(i%4===0){el=mk('text',{x:162,y:y+4,'text-anchor':'end',style:'font-size:12px;fill:var(--text-tertiary)'});el.textContent=String(i*1.5);labels.appendChild(el);}
+}
+var wl=[];
+for(i=0;i<4;i++){el=mk('text',{x:332,y:BOT-(i*6+3)*L/24+4+(i===2?14:0),style:'font-size:13px;fill:var(--text-secondary)'});el.textContent=names[i];labels.appendChild(el);wl.push(el);}
+function $(id){return document.getElementById(id);}
+var pos=0,vel=0,running=true,fast=false,flipping=false,last=null,idx=0,lastKey='';
+function params(){var v=+$('visc').value,l=+$('lift').value,r=l/v;return{visc:v,lift:l,vrel:r,vt:r/24,tau:0.4/(v/50)};}
+function setRun(){$('btnRun').textContent=running?'Pause':'Resume';}
+function draw(){
+ var p=params(),cy=BOT-9-pos*(L-18);$('flt').setAttribute('cy',cy);
+ var pl=8+p.lift*0.45,ratio=p.vt>0?Math.min(vel/p.vt,1):0,dl=8+(pl-8)*ratio;
+ $('pushL').setAttribute('y1',cy);$('pushL').setAttribute('y2',cy-pl);
+ $('pushH').setAttribute('points',(244-5)+','+(cy-pl)+' '+(244+5)+','+(cy-pl)+' 244,'+(cy-pl-8));
+ $('dragL').setAttribute('y1',cy);$('dragL').setAttribute('y2',cy+dl);
+ $('dragH').setAttribute('points',(276-5)+','+(cy+dl)+' '+(276+5)+','+(cy+dl)+' 276,'+(cy+dl+8));
+}
+function fine(){
+ var f=Math.min(pos,0.999999)*24,o=Math.floor(f),rem=(f-o)*28,j=Math.floor(rem),k=Math.floor((rem-j)*28);
+ $('fineTxt').textContent='Jorhdu '+j+' · Kirhdu '+k;
+}
+function curO(){return Math.min(24,Math.floor(pos*24)+1);}
+function readout(){
+ var p=params(),o=curO(),w=Math.floor((o-1)/6),n=((o-1)%6)+1;
+ var key=o+'|'+(pos>=1)+'|'+Math.round(p.vrel*100)+'|'+idx;
+ if(key===lastKey)return; lastKey=key;
+ $('nowTxt').textContent='Orhdu '+o+' of 24';
+ $('watchTxt').textContent=(w<3?'Orhduilun':'Orhduaragi')+', '+names[w]+' watch';
+ $('callTxt').textContent=pos>=1?'Flip now':(n+(n===1?' phrase':' phrases'));
+ $('hrTxt').textContent='Hour '+((o-1)*1.5)+' to '+(o*1.5)+' of 36';
+ var total=idx*24+(o-1),sunO=(total%16)+1,sunDay=(Math.floor(total/16)%3)+1;
+ $('sunTxt').textContent='Sun-day '+sunDay+', Orhdu '+sunO+' of 16';
+ $('sunNote').textContent='Sun watch '+(Math.floor((sunO-1)/4)+1)+' of 4';
+ var a=(idx%2)+1;
+ $('alignTxt').textContent=(a===1?'Aldisha 1 of 2: sun clock is offset after this':'Aldisha 2 of 2: both clocks realign at flip');
+ for(var q=0;q<4;q++){wl[q].style.fill=(q===w)?'var(--text-primary)':'var(--text-secondary)';wl[q].style.fontWeight=(q===w)?'600':'400';}
+ var T=24/p.vrel;$('tuneTxt').textContent=(Math.round(T*10)/10).toFixed(1)+' Orhdu per run';
+ var nt=$('tuneNote');
+ if(Math.abs(T-24)<=0.6){nt.textContent='On target';nt.style.color='var(--text-success)';}
+ else if(T<24){nt.textContent='Runs fast: the float tops out early';nt.style.color='var(--text-warning)';}
+ else{nt.textContent='Runs slow: the float is late';nt.style.color='var(--text-warning)';}
+}
+function tick(ts){
+ if(last===null)last=ts; var dr=Math.min((ts-last)/1000,0.1);last=ts;
+ if(running&&!flipping){var dt=dr*(fast?4:1),p=params();vel+=(p.vt-vel)*(1-Math.exp(-dt/p.tau));pos+=vel*dt;if(pos>=1){pos=1;vel=0;running=false;setRun();}}
+ draw();fine();readout();requestAnimationFrame(tick);
+}
+function flip(){
+ if(flipping)return; flipping=true; var was=pos>=1,g=$('grp'),st=performance.now();
+ function step(now){var k=Math.min((now-st)/900,1),a=180*(k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2);
+  g.setAttribute('transform','rotate('+a+' '+CX+' '+CY+')');
+  if(k<1)requestAnimationFrame(step);
+  else{g.removeAttribute('transform');pos=1-pos;vel=0;flipping=false;running=true;if(was)idx++;lastKey='';setRun();}}
+ requestAnimationFrame(step);
+}
+$('btnRun').addEventListener('click',function(){if(pos>=1){flip();return;}running=!running;setRun();});
+$('btnFlip').addEventListener('click',flip);
+$('btnTune').addEventListener('click',function(){var v=+$('visc').value;$('lift').value=v;$('liftOut').textContent=String(v);lastKey='';});
+$('btnSpeed').addEventListener('click',function(){fast=!fast;this.textContent=fast?'Speed 4x':'Speed 1x';});
+$('visc').addEventListener('input',function(){$('viscOut').textContent=this.value;lastKey='';});
+$('lift').addEventListener('input',function(){$('liftOut').textContent=this.value;lastKey='';});
+var ctx=null,lp=null,KEY=82.41;
+function ac(){
+ if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ctx=new C();lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=$('under').checked?900:18000;lp.connect(ctx.destination);}
+ if(ctx.state==='suspended')ctx.resume(); return ctx;
+}
+$('under').addEventListener('change',function(){if(lp)lp.frequency.value=this.checked?900:18000;});
+function note(semi,t,d,g){
+ var c=ctx,f=KEY*Math.pow(2,semi/12),o=c.createOscillator(),o2=c.createOscillator(),gn=c.createGain();
+ o.type='triangle';o2.type='sine';o.frequency.value=f;o2.frequency.value=f*2;
+ gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(g||0.35,t+0.05);gn.gain.exponentialRampToValueAtTime(0.0001,t+d);
+ o.connect(gn);o2.connect(gn);gn.connect(lp);o.start(t);o2.start(t);o.stop(t+d+0.05);o2.stop(t+d+0.05);
+}
+function click(t){var c=ctx,o=c.createOscillator(),gn=c.createGain();o.type='square';o.frequency.value=1800;gn.gain.setValueAtTime(0.12,t);gn.gain.exponentialRampToValueAtTime(0.0001,t+0.03);o.connect(gn);gn.connect(lp);o.start(t);o.stop(t+0.04);}
+function marker(t){note(12,t,0.7,0.3);note(10,t+0.6,0.7,0.3);note(7,t+1.2,1.1,0.3);return t+2.4;}
+$('btnMark').addEventListener('click',function(){if(!ac())return;marker(ctx.currentTime+0.05);});
+$('btnCall').addEventListener('click',function(){
+ if(!ac())return; var t=ctx.currentTime+0.05,n=((curO()-1)%6)+1;
+ note(0,t,2.2,0.45);t+=2.0;
+ [0,3,7,8,7].forEach(function(s,k){note(s,t+k*0.45,0.6,0.3);});t+=2.7;
+ for(var k=0;k<n;k++){click(t);note(7,t+0.1,0.5,0.28);note(0,t+0.55,0.7,0.28);t+=1.4;}
+});
+requestAnimationFrame(tick);
+})();
+</script><h2>The sounds</h2><p>Everything is tuned to E minor natural. The listening range is kept low, from about G2 to D4, so that the keynote and the city motifs sit in the deep register. The choices were made by ear. <span class="st decided">Decided</span></p><div class="tw"><table class="t"><tr><th>Sound</th><th>Name</th><th>What it is</th></tr><tr><td>Keynote</td><td>Kauahaulo</td><td>The one root note for the whole society, held on E2</td></tr><tr><td>Sun note</td><td>The fringe sun note</td><td>A fifth above the keynote. Fringe cities that live only by solar time give a different tone and sound only the solar hour.</td></tr><tr><td>City motif</td><td>Reiahaulo</td><td>Each city’s own motif. The chosen shape is Motif 3, the notes E, G, B, C, B.</td></tr><tr><td>Watch marker</td><td>Lagoreia</td><td>A three-step fall that marks the change of watch</td></tr></table></div><h2>The tower crew</h2><p>The crew is mixed, and each member uses the body they have. Urhmake keep the larynx and add vibration sacs. The sacs hold the keynote, the larynx sings the phrases, and Urhmate sound the percussive watch marker. The keynote holder and the watch leader are always Urhmauuka, chosen by seniority. The other seats stay open to whoever has the capacity. What seniority means differs from city to city, as regional colour: time served in the tower, or age, or caste rank. <span class="st decided">Decided</span></p><div class="tw"><table class="t"><tr><th>Role</th><th>Name</th><th>Notes</th></tr><tr><td>Tower crew</td><td>Orhdutirii</td><td>The whole crew of the Orhdutira</td></tr><tr><td>Singers</td><td>Haulorii</td><td>Sing the phrases</td></tr><tr><td>Stone horn</td><td>Kohuhaulo</td><td>The long horn that carries the call</td></tr><tr><td>Horn-keeper</td><td>Kohuhaulii</td><td>Keeps the horn</td></tr></table></div><h2>Two crews for the sun</h2><p>Two separate groups keep the clock in step with the sun, and they work together. The Soratsorii record it and the Soraesii call it. The names are kept apart on purpose. The Soratsorii write down what the sun does, and the Soraesii carry the news to the tower. <span class="st decided">Decided</span></p><div class="tw"><table class="t"><tr><th>Group</th><th>What they do</th><th>Who serves</th><th>Where</th></tr><tr><td>Soratsorii</td><td>Trackers and scribes. They watch the sun and record its position.</td><td>The fringe-city sun trackers</td><td>At their station</td></tr><tr><td>Soraesii</td><td>Callers. They announce the sun shift to the tower so the clock can be set.</td><td>Urhmake and Urhmauuka together</td><td>In the clock tower, or travelling back and forth between the station and the tower</td></tr></table></div><p>The Soratsorii are not the Kautsorii. The Kautsorii are the SOFAR message scribes.</p><h2>What it is made of</h2><ul class="plain"><li><b>The float tube</b> is glass sponge, Kohuzauma, as one uniform material for every clock. Cities too deep for the tube to work use a second compound, the <i>Pabitira</i>, or the help of Ruala as a special case. <span class="st decided">Decided</span></li><li><b>The fluid</b> is a blend of oil and a spermaceti-like wax, the <i>Loretoma</i>. The wax comes from a whale-like animal, the <i>Haulouma</i>, harvested wild from whale falls. There is no domestication yet. The harvest crew is mixed too. <span class="st decided">Decided</span></li><li><b>The glass guild</b>, the <i>Kohuzii</i>, works the glass. The <i>Kohulago</i>, “fallen stone,” are tektite beads. The <i>Kohutsorii</i> are the stone artisans, the carvers of Urhtsorna Roka. <span class="st decided">Decided</span></li><li><b>The cuff</b>, <i>Esabe</i>, is the tuned reed pager that receives the call. <span class="st decided">Decided</span></li></ul><p>Cities carry the call on stone horns, and the deepest cities use acoustic mirrors cut in stone. Shallow cities also use conches as small personal horns. Each fringe region has its own range and a tracking crew of one or two, who count the days on a cord of mussel byssus thread knotted onto a notched stone, since bone would wear away under water. <span class="st canon">Canon</span></p><h2>Names</h2><div class="tw"><table class="t"><tr><th>Word</th><th>Meaning</th><th>Built from</th></tr><tr><td>Kauahaulo</td><td>The keynote</td><td>kaua (ancient) + haulo</td></tr><tr><td>Reiahaulo</td><td>A city’s own motif</td><td>reia (glide) + haulo</td></tr><tr><td>Orhdulekha</td><td>A watch, one of four per Aldisha</td><td>Orhdu + lekha</td></tr><tr><td>Lagoreia</td><td>The watch marker</td><td>lago (fall) + reia (glide)</td></tr><tr><td>Orhdutira</td><td>The clock tower</td><td>Orhdu + tira</td></tr><tr><td>Orhdutirii</td><td>The tower crew</td><td>Orhdutira + -ii</td></tr><tr><td>Haulorii</td><td>The singers</td><td>haulo + -ii</td></tr><tr><td>Kohuhaulo</td><td>The stone horn</td><td>kohu (stone) + haulo</td></tr><tr><td>Kohuhaulii</td><td>The horn-keeper</td><td>Kohuhaulo + -ii</td></tr><tr><td>Soratsorii</td><td>The fringe-city sun trackers</td><td>sora (sun) + tsori (scribe) + -ii</td></tr><tr><td>Soraesii</td><td>The sun-shift-calling guild</td><td>sora + es- (to call) + -ii</td></tr><tr><td>Haulouma</td><td>The clockwhale</td><td>haulo + -uma</td></tr><tr><td>Loretoma</td><td>The clockwax</td><td>lore (float) + toma (still)</td></tr><tr><td>Kohuzii</td><td>The glass guild</td><td>kohuza (clear stone) + -ii</td></tr><tr><td>Kohulago</td><td>The tekabeads, tektite beads</td><td>kohu + lago (fall)</td></tr><tr><td>Esabe</td><td>The cuff, the reed pager</td><td>es- (to call) + -abe</td></tr><tr><td>Pabitira</td><td>The second compound</td><td>pa- + bi (second) + tira</td></tr><tr><td>Kohutsorii</td><td>The stone artisan guild</td><td>kohu + tsori + -ii</td></tr></table></div><p>The accepted variants are under Clock and call words on <a href="lang-urhmauuri.html">Urhmauuri</a>.</p><footer class="site">All rights reserved. &copy; E.N. Sinclair. Status tags show how settled each fact is.</footer></main></div><script src="search.js" defer></script></body></html>

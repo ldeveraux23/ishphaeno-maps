@@ -20,3 +20,11 @@ A site recording plays before the Wikimedia Commons file.
 
 ADDING ANOTHER LANGUAGE
 Make lang-tools/<name>/ with its own tool folders, then add one entry to LANGS in assets/shell.js and one tile in lang-tools/index.html. Link the new language from its almanac page, as lang-nok.html does for Nok.
+
+
+MORE LANGUAGES (Sound Cards only)
+vatrahu/, vatraxu/, stamfaen/, lyndfen/ (Lyndfen, Kannafen and Sharafen on one page, with a toggle), rejfen/, mylzhfa/, dorrwfo/, selo/ and mouane/ each have index.html (home) and sounds/ (Sound Cards and credits).
+Rejfen, Mylzhfa, Dorrwfo and Lyndfen are daughters of Stamfaen and are linked from stamfaen/index.html.
+Each page reads its own sounds/lang-data.js (the sound list, spellings, notes and example words) and the shared assets/lib.js (how to make each sound, sounds you may know, and which recording to play).
+SHARED RECORDINGS: audio/ at the top of lang-tools holds one mp3 per sound (named u + the IPA code point, for example u278.mp3 is the bilabial fricative). Every language that has that sound uses the same file. To replace one, overwrite the file; to add one, add the file and its entry in assets/lib.js (LIBA).
+Your own recordings made with the Record button are kept per language and per sound in your browser only.

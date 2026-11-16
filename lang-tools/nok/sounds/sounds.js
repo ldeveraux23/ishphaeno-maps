@@ -85,7 +85,7 @@ function openCard(id){
   }
   if(cur==="r"&&RED[s.id])h+='<div class="panel"><strong>Ranakumùng reduction.</strong> Unstressed and at the end of a word: '+esc(RED[s.id])+" (the spelling changes too).</div>";
   var kk=KEY[s.id+":"+cur]||KEY[s.id]||[];
-  if(s.id==="th"&&(cur==="n"||cur==="r"))kk=["No th sound here. ð is said t and θ is said s: use the English t and s."];
+  if((s.id==="th"||s.id==="theta")&&(cur==="n"||cur==="r"))kk=["No th sound here. ð is said t and θ is said s: use the English t and s."];
   h+="<h3>Sounds you may know</h3>";
   var k2n=(KEY2[s.id+":"+cur]||KEY2[s.id]||[]).length>0;
   h+=kk.length?"<ul>"+kk.map(function(k){return"<li>"+esc(k)+"</li>";}).join("")+"</ul>":(k2n?"":'<p class="small">Not in the Wikipedia IPA key, and no widely studied language I can confirm has it. Use your own recording as the model.</p>');
@@ -99,7 +99,7 @@ function openCard(id){
   if(an)h+='<p class="small"><a href="https://en.wikipedia.org/wiki/'+an+'" target="_blank" rel="noopener">Wikipedia article for this sound</a> (audio and more languages)</p>';
   var wu=WK[s.id];
   if(s.id==="r"&&cur!=="z"&&cur!=="n")wu=null;
-  if(s.id==="th"&&(cur==="n"||cur==="r"))wu=null;
+  if((s.id==="th"||s.id==="theta")&&(cur==="n"||cur==="r"))wu=null;
   h+='<h3>Listen</h3><div id="lst"></div>';
   h+='<div class="links"><a href="'+SS+'" target="_blank" rel="noopener">Seeing Speech: IPA chart</a>';
   h+="</div>";

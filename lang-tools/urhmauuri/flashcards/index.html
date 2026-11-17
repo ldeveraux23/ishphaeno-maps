@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Urhmauuri Flashcards</title>
+<link rel="stylesheet" href="../../assets/shell.css">
+<link rel="stylesheet" href="flashcards.css"></head>
+<body data-lang="urhmauuri" data-tool="flashcards">
+<section class="fintro"><h1>Urhmauuri Flashcards</h1><p>Decks follow the dictionary and phrasebook on the <a href="../../../lang-urhmauuri.html">Urhmauuri almanac page</a>. Verbs are infinitives and end in <b>-ai</b>.</p></section>
+<main>
+<div class="lbl">Deck</div><div class="row" id="decks"></div>
+<div class="lbl">Practice</div>
+<div class="row" id="opts"></div>
+<div class="prog"><i id="bar"></i></div>
+<div class="stats"><span id="st1"></span><span id="st2"></span></div>
+<div id="stage" aria-live="polite"><div id="front"></div><div id="back"></div><div id="hint"></div>
+<input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" style="display:none" aria-label="Your answer">
+<div id="fb"></div></div>
+<div class="row" id="ctl" style="justify-content:center"></div>
+<div id="rec"></div>
+<div id="kb" hidden></div>
+<p class="sm">Cards come straight from the almanac page. Urhmauuri has two spellings, the formal one with real IPA letters (ʉ, ʁ) and the keyboard one (uu, rh). Typed answers accept either, and ignore capitals and apostrophe styles. Drafts, such as the calendar and clock words, may still change.</p>
+</main>
+<script src="../../assets/shell.js"></script>
+<script src="decks.js"></script>
+<script src="flashcards.js"></script>
+</body></html>

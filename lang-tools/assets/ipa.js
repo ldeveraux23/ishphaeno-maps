@@ -152,7 +152,7 @@ function openCard(key){
 }
 function buildListen(box,s){
   var a=audioFor(s);
-  if(!a){box.innerHTML='<p class="small">No reference file for this sound yet. Record it below with the Record button; use the upload box under “My reference recording” to keep it as the model.</p>';return;}
+  if(!a){box.innerHTML='<p class="small">No reference file for this sound yet. Record yourself below. You can also upload a recording of your own to use as the model.</p>';return;}
   var au=document.createElement("audio");au.controls=true;au.preload="none";au.src="../../audio/"+a.f+".mp3";
   var p=document.createElement("p");p.className="small";
   p.textContent="Reference recording"+(a.site?" made for this site.":" from Wikimedia Commons.")+(s.auNote?" "+s.auNote:"");
@@ -202,8 +202,9 @@ function saveRef(k,blob){return idb().then(function(db){if(!db)return;try{db.tra
 function loadRef(k){return idb().then(function(db){return new Promise(function(res){if(!db)return res(null);try{var q=db.transaction("refs").objectStore("refs").get(k);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};}catch(e){res(null);}});});}
 function buildRecorder(box,s){
   var key=LX.id+":"+cur+":"+s.key;
-  box.innerHTML='<div class="lab">My reference recording (the model sound)</div><canvas class="spec" id="cref"></canvas>'+
-   '<div><input type="file" id="fref" accept="audio/*"> <button class="act" id="pref" disabled>Play</button> <button class="act" id="dref" disabled>Download</button></div>'+
+  var emb=audioFor(s);
+  box.innerHTML='<div class="lab">'+(emb?'Reference recording':'My reference recording (the model sound)')+'</div>'+(emb?'<div><button class="act" id="tref" type="button" aria-pressed="false">Show reference spectrogram</button></div>':'')+'<canvas class="spec" id="cref"'+(emb?' style="display:none"':'')+'></canvas>'+
+   '<div id="refbtns"'+(emb?' style="display:none"':'')+'>'+(emb?'':'<input type="file" id="fref" accept="audio/*"> ')+'<button class="act" id="pref" disabled>Play</button> <button class="act" id="dref" disabled>Download</button></div>'+
    '<div class="lab">My attempt</div><canvas class="spec" id="cmine"></canvas>'+
    '<div><button class="act" id="rec">Record</button> <input type="file" id="fmine" accept="audio/*"> <button class="act" id="pmine" disabled>Play</button> <button class="act" id="dmine" disabled>Download</button></div>'+
    '<div class="msg" id="rmsg"></div>';
@@ -211,14 +212,20 @@ function buildRecorder(box,s){
   function show(obj,cv,pb,store){var db=box.querySelector(store===REF?"#dref":"#dmine");db.disabled=false;db.onclick=function(){var t=(obj.blob.type||"").toLowerCase();var ex=t.indexOf("webm")>=0?"webm":t.indexOf("ogg")>=0?"ogg":(t.indexOf("mp4")>=0||t.indexOf("m4a")>=0)?"m4a":(t.indexOf("mpeg")>=0||t.indexOf("mp3")>=0)?"mp3":t.indexOf("wav")>=0?"wav":"audio";var a=document.createElement("a");a.href=URL.createObjectURL(obj.blob);a.download=LX.id+"-"+cur+"-"+s.key+(store===REF?"-reference.":"-attempt.")+ex;document.body.appendChild(a);a.click();a.remove();};store[key]=obj;drawSpec(obj.data,obj.sr,cv);pb.disabled=false;pb.onclick=function(){var a=new Audio(URL.createObjectURL(obj.blob));a.play();};}
   var cref=box.querySelector("#cref"),cmine=box.querySelector("#cmine"),pref=box.querySelector("#pref"),pmine=box.querySelector("#pmine");
   [cref,cmine].forEach(function(c){c.width=800;c.height=180;});
-  if(REF[key])show(REF[key],cref,pref,REF);else loadRef(key).then(function(b){if(b&&sel===s.key)decode(b).then(function(o){show(o,cref,pref,REF);}).catch(function(){});});
+  if(emb){var tref=box.querySelector("#tref"),loaded=false;
+    function loadEmb(){if(loaded)return;loaded=true;fetch("../../audio/"+emb.f+".mp3").then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){return decode(b);}).then(function(o){if(sel===s.key)show(o,cref,pref,REF);}).catch(function(){loaded=false;msg.textContent="The reference spectrogram needs the page to be opened from the website. The Play button above still works.";});}
+    function setT(on){cref.style.display=on?"":"none";box.querySelector("#refbtns").style.display=on?"":"none";tref.setAttribute("aria-pressed",on);tref.textContent=on?"Hide reference spectrogram":"Show reference spectrogram";try{localStorage.setItem("lxshowref",on?"1":"0");}catch(e){}if(on)loadEmb();}
+    tref.onclick=function(){setT(cref.style.display==="none");};
+    var pref0=false;try{pref0=localStorage.getItem("lxshowref")==="1";}catch(e){}
+    if(pref0)setT(true);}
+  else if(REF[key])show(REF[key],cref,pref,REF);else loadRef(key).then(function(b){if(b&&sel===s.key)decode(b).then(function(o){show(o,cref,pref,REF);}).catch(function(){});});
   if(MINE[key])show(MINE[key],cmine,pmine,MINE);
-  box.querySelector("#fref").onchange=function(e){var f=e.target.files[0];if(!f)return;decode(f).then(function(o){show(o,cref,pref,REF);saveRef(key,f);msg.textContent="";}).catch(function(){msg.textContent="Could not read that audio file.";});};
+  if(box.querySelector("#fref"))box.querySelector("#fref").onchange=function(e){var f=e.target.files[0];if(!f)return;decode(f).then(function(o){show(o,cref,pref,REF);saveRef(key,f);msg.textContent="";}).catch(function(){msg.textContent="Could not read that audio file.";});};
   box.querySelector("#fmine").onchange=function(e){var f=e.target.files[0];if(!f)return;decode(f).then(function(o){show(o,cmine,pmine,MINE);msg.textContent="";}).catch(function(){msg.textContent="Could not read that audio file.";});};
   var rb=box.querySelector("#rec"),mr=null,chunks=[],stream=null;
   rb.onclick=function(){
     if(mr&&mr.state==="recording"){mr.stop();return;}
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){msg.textContent="This browser can't record here. Use the upload box to add a recording instead.";return;}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){msg.textContent="This browser can't record here. Use the upload box next to Record to add a recording instead.";return;}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){
       stream=st;chunks=[];mr=new MediaRecorder(st);
       mr.ondataavailable=function(e){if(e.data.size)chunks.push(e.data);};
